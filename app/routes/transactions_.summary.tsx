@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import type { Route } from './+types/yearly-summary';
+import type { Route } from './+types/transactions_.summary';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -90,40 +90,33 @@ export default function YearlySummary() {
         </div>
 
         <div className="mt-2 mb-8">
-          <table className="w-full table-auto border-collapse">
-            <thead>
-              <tr className="border-t border-b-2 text-left">
-                <th className="py-1.5 pl-2 font-bold">Pos.</th>
-                <th className="py-1.5 font-bold">Category</th>
-                <th className="py-1.5 pr-2 text-right font-bold">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item, index) => (
-                <tr key={index}>
-                  <td className="py-1.5 pl-2">
-                    {String(index + 1).padStart(2, '0')}.
-                  </td>
-                  <td className="truncate py-1.5">{item.name}</td>
-                  <td className="py-1.5 pr-2 text-right">
-                    {formatAmount(item.total)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t font-bold">
-                <td className="pt-2"></td>
-                <td className="pt-2 pr-4 text-right"></td>
-                <td className="pt-2 pr-2 text-right">
-                  Total:&nbsp;&nbsp;
-                  <span className="border-b-2 border-black pb-1">
-                    {formatAmount(totalAmount)}
-                  </span>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+          <div className="grid w-full grid-cols-[60px_1fr_auto] items-center">
+            <div className="border-t border-b-2 py-1.5 pl-2 font-bold">
+              Pos.
+            </div>
+            <div className="border-t border-b-2 py-1.5 font-bold">Category</div>
+            <div className="border-t border-b-2 py-1.5 pr-2 text-right font-bold">
+              Amount
+            </div>
+
+            {data.items.map((item, index) => (
+              <div key={index} className="contents">
+                <div className="py-1.5 pl-2">
+                  {String(index + 1).padStart(2, '0')}.
+                </div>
+                <div className="min-w-0 truncate py-1.5 pr-2">{item.name}</div>
+                <div className="py-1.5 pr-2 text-right">
+                  {formatAmount(item.total)}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="border-t pt-2 pr-2 text-right font-bold">
+            Total:&nbsp;&nbsp;
+            <span className="border-b-2 border-black pb-1">
+              {formatAmount(totalAmount)}
+            </span>
+          </div>
         </div>
 
         <div className="mb-6 space-y-4 text-justify text-base">

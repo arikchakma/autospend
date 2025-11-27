@@ -77,7 +77,7 @@ export function TransactionDetails(props: TransactionDetailsProps) {
         </p>
       </SheetTrigger>
       <SheetContent
-        className="flex flex-col bg-transparent p-4 shadow-none"
+        className="flex w-full max-w-full flex-col bg-transparent p-4 shadow-none"
         closeClassName="top-8 right-8"
         initialFocus={false}
       >

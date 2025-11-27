@@ -60,7 +60,7 @@ export default function Home() {
   });
 
   return (
-    <section className="mx-auto max-w-lg py-10">
+    <section className="mx-auto max-w-lg px-5 py-10">
       <div className="flex items-center gap-2 pb-12">
         <Link
           to="/"
@@ -81,7 +81,7 @@ export default function Home() {
         <div
           {...getRootProps({
             className: cn(
-              'border-[1.5px] border-dashed border-zinc-200 min-h-60 flex items-center justify-center rounded-xl p-4 mt-8 bg-zinc-50',
+              'border-[1.5px] border-dashed cursor-default border-zinc-200 min-h-60 flex items-center justify-center rounded-xl p-4 mt-8 bg-zinc-50',
               isDragActive && 'border-zinc-400'
             ),
           })}
@@ -89,7 +89,7 @@ export default function Home() {
           <input {...getInputProps()} />
           <div className="mx-auto flex max-w-2xs flex-col items-center text-center text-balance">
             <PlusIcon className="size-5 text-zinc-400" />
-            <p className="mt-3 text-zinc-500">
+            <p className="mt-3 cursor-default text-zinc-500">
               Drag and drop your files here or{' '}
               <span className="text-black">click to browse</span>
             </p>

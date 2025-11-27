@@ -10,7 +10,7 @@ export default function TransactionsLayout() {
     .toFormat("dd 'of' MMMM");
 
   return (
-    <section className="mx-auto max-w-lg">
+    <section className="mx-auto max-w-lg px-5">
       <div className="my-8 flex justify-between gap-2">
         <div className="flex w-full flex-col gap-0.5">
           <div className="flex items-center justify-between gap-2">
