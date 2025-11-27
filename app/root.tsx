@@ -13,6 +13,8 @@ import { fileUploaderClient } from './lib/file-manager/file-uploader-client';
 import { FileUploaderClientProvider } from './lib/file-manager/file-upload-provider';
 import { Toaster } from 'sonner';
 import { NavLoadingBar } from './components/nav-loading-bar';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '~/lib/query-client';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
@@ -38,11 +40,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <FileUploaderClientProvider client={fileUploaderClient}>
-      <Outlet />
-      <Toaster />
-      <NavLoadingBar />
-    </FileUploaderClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <FileUploaderClientProvider client={fileUploaderClient}>
+        <Outlet />
+        <Toaster />
+        <NavLoadingBar />
+      </FileUploaderClientProvider>
+    </QueryClientProvider>
   );
 }
 

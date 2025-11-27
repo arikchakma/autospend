@@ -4,10 +4,10 @@ import { NavLink } from 'react-router';
 
 export const meta: Route.MetaFunction = () => {
   return [
-    { title: 'Poisha - Simplify Your Personal Finances' },
+    { title: 'AutoSpend - Simplify Your Personal Finances' },
     {
       name: 'description',
-      content: 'Poisha helps you manage your personal finances',
+      content: 'AutoSpend helps you manage your personal finances',
     },
   ];
 };

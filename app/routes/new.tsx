@@ -1,5 +1,5 @@
 import type { Route } from './+types/new';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import {
   useDropzone,
   type DropEvent,
@@ -8,18 +8,15 @@ import {
 import { ArrowLeftIcon, Loader2Icon, PlusIcon } from 'lucide-react';
 import { cn } from '~/lib/classname';
 import { FileUploadQueue } from '~/components/file-upload-queue';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { uploadFilesAtom, uploadingFilesAtom } from '~/atoms/upload-files';
 import { useIsFileUploading } from '~/lib/file-manager/use-is-file-uploading';
-import { Link, NavLink, useFetcher } from 'react-router';
+import { Link } from 'react-router';
 import { useHasFileUploadingError } from '~/lib/file-manager/use-has-file-uploading-error';
 import { useFileUploaderClient } from '~/lib/file-manager/file-upload-provider';
 import { toast } from 'sonner';
-import { z } from 'zod';
-import { db } from '~/db';
-import { imagesTable } from '~/db/schema';
-import { processImages } from '~/lib/openai.server';
-import { noop } from '~/lib/promise';
+import { useMutation } from '@tanstack/react-query';
+import { httpPost } from '~/lib/http';
 
 type OnDrop<T extends File = File> = (
   acceptedFiles: T[],
@@ -29,55 +26,13 @@ type OnDrop<T extends File = File> = (
 
 export const meta: Route.MetaFunction = () => {
   return [
-    { title: 'Poisha - Simplify Your Personal Finances' },
+    { title: 'AutoSpend - Simplify Your Personal Finances' },
     {
       name: 'description',
-      content: 'Poisha helps you manage your personal finances',
+      content: 'AutoSpend helps you manage your personal finances',
     },
   ];
 };
-
-export const links: Route.LinksFunction = () => {
-  return [];
-};
-
-export async function action({ request }: Route.ActionArgs) {
-  const bodySchema = z.object({
-    images: z.array(
-      z.object({
-        name: z.string(),
-        size: z.number().min(0),
-        type: z.string(),
-        path: z.string(),
-      })
-    ),
-  });
-
-  const jsonBody = await request.json();
-  const { data: body, error } = bodySchema.safeParse(jsonBody);
-  if (error) {
-    const errors = error.issues;
-    const message = errors.map((e) => e.message).join(', ');
-
-    return { errors, message };
-  }
-
-  const images = await db
-    .insert(imagesTable)
-    .values(
-      body.images.map((image) => ({
-        name: image.name,
-        size: image.size,
-        type: image.type,
-        path: image.path,
-      }))
-    )
-    .returning();
-
-  await processImages(images);
-
-  return { status: 'ok' };
-}
 
 export default function Home() {
   const setFiles = useSetAtom(uploadFilesAtom);
@@ -150,6 +105,13 @@ export default function Home() {
   );
 }
 
+type Image = {
+  name: string;
+  size: number;
+  type: string;
+  path: string;
+};
+
 type NextButtonProps = {
   className?: string;
 };
@@ -163,22 +125,51 @@ function NextButton(props: NextButtonProps) {
 
   const [files, setFiles] = useAtom(uploadFilesAtom);
 
-  // useEffect(() => {
-  //   if (fetcher.data?.status !== 'ok') {
-  //     return;
-  //   }
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (images: Image[]) => {
+      return httpPost('/api/v1/images', { images });
+    },
+    onSuccess: () => {
+      setFiles([]);
+    },
+  });
 
-  //   setFiles([]);
-  // }, [fetcher.data]);
+  const isLoading = isPending || isUploading;
 
   return (
     <button
-      className="flex w-full cursor-pointer items-center justify-center rounded-xl bg-zinc-100 p-1 py-2.5 leading-none tracking-wide text-zinc-600 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:text-zinc-400 data-[loading=true]:cursor-wait"
-      disabled={isUploading || files.length === 0 || hasError}
-      data-loading={isUploading}
+      className={cn(
+        'flex w-full cursor-pointer items-center justify-center rounded-xl bg-zinc-100 p-1 py-2.5 leading-none tracking-wide text-zinc-600 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:text-zinc-400 data-[loading=true]:cursor-wait',
+        className
+      )}
+      disabled={isLoading || files.length === 0 || hasError}
+      data-loading={isLoading}
       type="submit"
+      onClick={() => {
+        const uploaders = fileUploaderClient.getAll();
+        const images: Image[] = [];
+
+        for (const f of files) {
+          const uploader = uploaders.find((u) => u.uploaderId === f.id);
+          if (!uploader) {
+            toast.error(`File ${f.file.name} is not uploaded`);
+            return;
+          }
+
+          images.push({
+            name: f.file.name,
+            size: f.file.size,
+            type: f.file.type,
+            // it's safe to assume that the file has been uploaded
+            // since we're submitting the form
+            path: uploader.state.data?.key!,
+          });
+        }
+
+        mutate(images);
+      }}
     >
-      {isUploading ? (
+      {isLoading ? (
         <Loader2Icon className="size-4 animate-spin stroke-[2.5]" />
       ) : (
         'Next'

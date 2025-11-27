@@ -2,6 +2,7 @@ import { FetchError, httpPost } from '../http';
 import type { FileUploaderClient } from './file-uploader-client';
 import type { FileUploadObserver } from './file-upload-observer';
 import { notifyManager } from './notify-manager';
+import invariant from 'tiny-invariant';
 
 export type FileUploaderStatus = 'idle' | 'uploading' | 'uploaded' | 'error';
 
@@ -231,12 +232,13 @@ export class FileUploader {
     type: string,
     size: number
   ): Promise<string> {
-    if (!this.#abortController) {
-      throw new Error("There might be a bug, abort controller doesn't exist");
-    }
+    invariant(
+      this.#abortController,
+      "There might be a bug, abort controller doesn't exist"
+    );
 
     const response = await httpPost<FilePresignedResponse>(
-      '/file-signed-url',
+      '/api/v1/signed-url',
       {
         name,
         size,
