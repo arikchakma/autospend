@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import type { Transaction } from '~/db/types';
-import { formatCurrency, formatNumber } from '~/lib/formatter';
+import { formatCurrency, formatNumber, humanizeNumber } from '~/lib/formatter';
 import { TransactionDetails } from './transaction-details';
 import { useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
@@ -23,7 +23,7 @@ export function TransactionsGroup(props: TransactionsGroupProps) {
     return acc + transaction.amount;
   }, 0);
   const totalTransactions = transactions.length;
-  const formattedTotalAmount = formatCurrency(totalAmount);
+  const formattedTotalAmount = humanizeNumber(totalAmount);
   const formattedTotalTransactions = formatNumber(totalTransactions);
 
   return (
@@ -35,7 +35,7 @@ export function TransactionsGroup(props: TransactionsGroupProps) {
         <h3 className="text-lg font-medium">{formattedTitle}</h3>
         <div className="flex items-center gap-2">
           <p className="text-sm text-zinc-500">
-            {formattedTotalAmount} spent on {formattedTotalTransactions}{' '}
+            BDT {formattedTotalAmount} spent on {formattedTotalTransactions}{' '}
             purchases
           </p>
           <button

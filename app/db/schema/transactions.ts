@@ -1,4 +1,11 @@
-import { pgTable, real, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  jsonb,
+  pgTable,
+  real,
+  serial,
+  text,
+  timestamp,
+} from 'drizzle-orm/pg-core';
 import { defaultTimestamps } from './default-timestamps';
 
 export const transactionsTable = pgTable('transactions', {

@@ -8,6 +8,7 @@ import {
 } from '~/components/ui/chart';
 import type { ChartConfig } from '~/components/ui/chart';
 import { humanizeNumber } from '~/lib/formatter';
+import type { TransactionCategory } from '~/lib/transaction';
 
 const chartData = [
   {
@@ -195,12 +196,24 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function MonthlyBarChart() {
+export type MonthlyChartData = {
+  month: string;
+} & {
+  [key in TransactionCategory]: number;
+};
+
+interface MonthlyBarChartProps {
+  data: MonthlyChartData[];
+}
+
+export function MonthlyBarChart(props: MonthlyBarChartProps) {
+  const { data } = props;
+
   return (
     <Card className="mb-4 border-zinc-200/50 bg-zinc-50 py-4">
       <CardContent className="px-4">
         <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart accessibilityLayer data={data}>
             <rect
               x="0"
               y="0"
