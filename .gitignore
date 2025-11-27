@@ -1,0 +1,12 @@
+.DS_Store
+/node_modules/
+
+# React Router
+/.react-router/
+/build/
+
+.env*
+!.env.example
+
+# Ignore .sqlite3 files, db.sqlite3-*
+*.sqlite3
