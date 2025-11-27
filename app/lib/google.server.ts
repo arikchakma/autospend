@@ -81,6 +81,13 @@ export async function extractTransactionData(image: Image) {
           ],
         },
       ],
+      providerOptions: {
+        google: {
+          thinkingConfig: {
+            thinkingBudget: 0,
+          },
+        },
+      },
     });
 
     return result.object;

@@ -120,7 +120,7 @@ export function TransactionDetails(props: TransactionDetailsProps) {
                 <ReceiptIcon className="size-5 shrink-0 text-zinc-400" />
                 <span>Receipt</span>
               </div>
-              <div className="overflow-hidden rounded-xl border border-zinc-200">
+              <div className="overflow-hidden rounded-lg border border-zinc-200">
                 <img
                   src={imageUrl}
                   alt="Receipt"
@@ -166,47 +166,47 @@ function CategoryBadge(props: CategoryBadgeProps) {
   > = {
     food: {
       icon: UtensilsIcon,
-      color: 'bg-pink-50 text-pink-700',
+      color: 'bg-orange-50 text-orange-700',
       label: 'Food',
     },
     transport: {
       icon: CarIcon,
-      color: 'bg-blue-50 text-blue-700',
+      color: 'bg-sky-50 text-sky-700',
       label: 'Transport',
     },
     shopping: {
       icon: ShoppingBagIcon,
-      color: 'bg-green-50 text-green-700',
+      color: 'bg-emerald-50 text-emerald-700',
       label: 'Shopping',
     },
     entertainment: {
       icon: FilmIcon,
-      color: 'bg-purple-50 text-purple-700',
+      color: 'bg-fuchsia-50 text-fuchsia-700',
       label: 'Entertainment',
     },
     accommodation: {
       icon: HomeIcon,
-      color: 'bg-yellow-50 text-yellow-700',
+      color: 'bg-amber-50 text-amber-700',
       label: 'Accommodation',
     },
     health: {
       icon: HeartIcon,
-      color: 'bg-rose-50 text-rose-700',
+      color: 'bg-red-50 text-red-700',
       label: 'Health',
     },
     education: {
       icon: GraduationCapIcon,
-      color: 'bg-orange-50 text-orange-700',
+      color: 'bg-indigo-50 text-indigo-700',
       label: 'Education',
     },
     bills: {
       icon: FileTextIcon,
-      color: 'bg-gray-50 text-gray-700',
+      color: 'bg-cyan-50 text-cyan-700',
       label: 'Bills',
     },
     other: {
       icon: CircleDashedIcon,
-      color: 'bg-zinc-50 text-zinc-700',
+      color: 'bg-lime-50 text-lime-700',
       label: 'Other',
     },
   };

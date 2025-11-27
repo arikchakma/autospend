@@ -1,44 +1,197 @@
-'use client';
-
 import { Bar, BarChart, XAxis } from 'recharts';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card';
+import { Card, CardContent } from '~/components/ui/card';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '~/components/ui/chart';
 import type { ChartConfig } from '~/components/ui/chart';
+import { humanizeNumber } from '~/lib/formatter';
 
 const chartData = [
-  { month: 'January', desktop: 186, mobile: 80 },
-  { month: 'February', desktop: 305, mobile: 200 },
-  { month: 'March', desktop: 237, mobile: 120 },
-  { month: 'April', desktop: 73, mobile: 190 },
-  { month: 'May', desktop: 209, mobile: 130 },
-  { month: 'June', desktop: 214, mobile: 140 },
-  { month: 'July', desktop: 120, mobile: 150 },
-  { month: 'August', desktop: 19, mobile: 160 },
-  { month: 'September', desktop: 130, mobile: 170 },
-  { month: 'October', desktop: 214, mobile: 180 },
-  { month: 'November', desktop: 140, mobile: 190 },
-  { month: 'December', desktop: 140, mobile: 120 },
+  {
+    month: 'January',
+    food: 120,
+    transport: 40,
+    shopping: 50,
+    entertainment: 30,
+    accommodation: 0,
+    health: 20,
+    education: 0,
+    bills: 100,
+    other: 10,
+  },
+  {
+    month: 'February',
+    food: 130,
+    transport: 45,
+    shopping: 60,
+    entertainment: 40,
+    accommodation: 0,
+    health: 0,
+    education: 0,
+    bills: 110,
+    other: 15,
+  },
+  {
+    month: 'March',
+    food: 140,
+    transport: 50,
+    shopping: 40,
+    entertainment: 35,
+    accommodation: 0,
+    health: 10,
+    education: 0,
+    bills: 105,
+    other: 12,
+  },
+  {
+    month: 'April',
+    food: 125,
+    transport: 42,
+    shopping: 70,
+    entertainment: 50,
+    accommodation: 200,
+    health: 0,
+    education: 0,
+    bills: 100,
+    other: 20,
+  },
+  {
+    month: 'May',
+    food: 135,
+    transport: 48,
+    shopping: 55,
+    entertainment: 45,
+    accommodation: 0,
+    health: 30,
+    education: 0,
+    bills: 115,
+    other: 18,
+  },
+  {
+    month: 'June',
+    food: 150,
+    transport: 55,
+    shopping: 65,
+    entertainment: 60,
+    accommodation: 0,
+    health: 0,
+    education: 0,
+    bills: 120,
+    other: 25,
+  },
+  {
+    month: 'July',
+    food: 160,
+    transport: 60,
+    shopping: 80,
+    entertainment: 70,
+    accommodation: 300,
+    health: 15,
+    education: 0,
+    bills: 125,
+    other: 30,
+  },
+  {
+    month: 'August',
+    food: 145,
+    transport: 52,
+    shopping: 75,
+    entertainment: 55,
+    accommodation: 0,
+    health: 0,
+    education: 500,
+    bills: 110,
+    other: 22,
+  },
+  {
+    month: 'September',
+    food: 155,
+    transport: 58,
+    shopping: 85,
+    entertainment: 65,
+    accommodation: 0,
+    health: 25,
+    education: 0,
+    bills: 130,
+    other: 28,
+  },
+  {
+    month: 'October',
+    food: 170,
+    transport: 65,
+    shopping: 90,
+    entertainment: 80,
+    accommodation: 0,
+    health: 0,
+    education: 0,
+    bills: 140,
+    other: 35,
+  },
+  {
+    month: 'November',
+    food: 165,
+    transport: 62,
+    shopping: 95,
+    entertainment: 75,
+    accommodation: 0,
+    health: 35,
+    education: 0,
+    bills: 135,
+    other: 32,
+  },
+  {
+    month: 'December',
+    food: 180,
+    transport: 70,
+    shopping: 100,
+    entertainment: 90,
+    accommodation: 0,
+    health: 0,
+    education: 0,
+    bills: 150,
+    other: 40,
+  },
 ];
 
 const chartConfig = {
-  desktop: {
-    label: 'Desktop',
-    color: 'color-mix(in srgb, var(--color-blue-500) 60%, white)',
+  food: {
+    label: 'Food',
+    color: 'color-mix(in srgb, var(--color-orange-500) 60%, white)',
   },
-  mobile: {
-    label: 'Mobile',
-    color: 'color-mix(in srgb, var(--color-rose-500) 60%, white)',
+  transport: {
+    label: 'Transport',
+    color: 'color-mix(in srgb, var(--color-sky-500) 60%, white)',
+  },
+  shopping: {
+    label: 'Shopping',
+    color: 'color-mix(in srgb, var(--color-emerald-500) 60%, white)',
+  },
+  entertainment: {
+    label: 'Entertainment',
+    color: 'color-mix(in srgb, var(--color-fuchsia-500) 60%, white)',
+  },
+  accommodation: {
+    label: 'Accommodation',
+    color: 'color-mix(in srgb, var(--color-amber-500) 60%, white)',
+  },
+  health: {
+    label: 'Health',
+    color: 'color-mix(in srgb, var(--color-red-500) 60%, white)',
+  },
+  education: {
+    label: 'Education',
+    color: 'color-mix(in srgb, var(--color-indigo-500) 60%, white)',
+  },
+  bills: {
+    label: 'Bills',
+    color: 'color-mix(in srgb, var(--color-cyan-500) 60%, white)',
+  },
+  other: {
+    label: 'Other',
+    color: 'color-mix(in srgb, var(--color-lime-500) 60%, white)',
   },
 } satisfies ChartConfig;
 
@@ -67,20 +220,34 @@ export function MonthlyBarChart() {
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="dashed" />}
+              content={
+                <ChartTooltipContent
+                  indicator="dashed"
+                  valueFormatter={humanizeNumber}
+                />
+              }
             />
-            <Bar
-              dataKey="desktop"
-              fill={chartConfig.desktop.color}
-              stackId="a"
-              radius={[0, 0, 4, 4]}
-            />
-            <Bar
-              dataKey="mobile"
-              fill={chartConfig.mobile.color}
-              stackId="a"
-              radius={[4, 4, 0, 0]}
-            />
+            {Object.keys(chartConfig).map((key, index) => {
+              const isLast = index === Object.keys(chartConfig).length - 1;
+              const isFirst = index === 0;
+
+              return (
+                <Bar
+                  key={key}
+                  dataKey={key}
+                  fill={chartConfig[key as keyof typeof chartConfig].color}
+                  stackId="a"
+                  radius={
+                    isFirst
+                      ? [0, 0, 4, 4]
+                      : isLast
+                        ? [4, 4, 0, 0]
+                        : [0, 0, 0, 0]
+                  }
+                  className="stroke-white stroke-1"
+                />
+              );
+            })}
           </BarChart>
         </ChartContainer>
       </CardContent>
