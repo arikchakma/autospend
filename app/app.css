@@ -1,6 +1,6 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
-/* Make clicks pass-through */
 #nprogress {
   pointer-events: none;
 }

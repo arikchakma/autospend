@@ -18,6 +18,8 @@ import { DateTime } from 'luxon';
 import { cn } from '~/lib/classname';
 
 import { Sheet, SheetContent, SheetTrigger } from './sheet';
+import { formatCurrency } from '~/lib/formatter';
+import { getImageUrl } from '~/lib/image';
 
 type TransactionDetailsProps = {
   transaction: Transaction;
@@ -37,16 +39,9 @@ export function TransactionDetails(props: TransactionDetailsProps) {
     cardNumber,
   } = transaction;
 
-  const formattedAmount = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-    signDisplay: 'auto',
-  }).format(amount);
-
+  const formattedAmount = formatCurrency(amount);
   const formattedDate = DateTime.fromJSDate(timestamp).toFormat('dd MMM yyyy');
-  const imageUrl = image
-    ? `${import.meta.env.VITE_FILE_CDN_URL}/${image}`
-    : null;
+  const imageUrl = image ? getImageUrl(image) : null;
 
   return (
     <Sheet>

@@ -6,6 +6,9 @@ import { DateTime } from 'luxon';
 import { getTimeOfDay } from '~/lib/time';
 import { cn } from '~/lib/classname';
 import { TransactionDetails } from '~/components/transaction-details';
+import { formatCurrency, formatNumber } from '~/lib/formatter';
+import { useMemo } from 'react';
+import { MonthlyBarChart } from '~/components/monthly-bar-chart';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -26,43 +29,37 @@ export async function loader(args: Route.LoaderArgs) {
   return { transactions };
 }
 
-export default function Transactions(props: Route.ComponentProps) {
+export default function TransactionsIndexPage(props: Route.ComponentProps) {
   const { transactions } = props.loaderData;
 
-  const groupedTransactions = transactions.reduce(
-    (acc, transaction) => {
-      const date = DateTime.fromJSDate(transaction.timestamp).toFormat(
-        'yyyy-MM'
-      );
-      if (!acc[date]) {
-        acc[date] = [];
-      }
-      acc[date].push(transaction);
-      return acc;
-    },
-    {} as Record<string, (typeof transactions)[number][]>
-  );
-
-  const timeOfDay = getTimeOfDay();
-  const formattedDate = DateTime.now()
-    .setZone('Asia/Kolkata')
-    .toFormat("dd 'of' MMMM");
+  const groupedTransactions = useMemo(() => {
+    return transactions.reduce(
+      (acc, transaction) => {
+        const date = DateTime.fromJSDate(transaction.timestamp).toFormat(
+          'yyyy-MM'
+        );
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push(transaction);
+        return acc;
+      },
+      {} as Record<string, (typeof transactions)[number][]>
+    );
+  }, [transactions]);
 
   return (
     <>
-      {Object.entries(groupedTransactions).map(([date, transactions]) => {
+      <MonthlyBarChart />
+
+      {Object.entries(groupedTransactions).map(([date, transactions = []]) => {
         const formattedTitle = DateTime.fromISO(date).toFormat('MMMM yyyy');
         const totalAmount = transactions.reduce((acc, transaction) => {
           return acc + transaction.amount;
         }, 0);
         const totalTransactions = transactions.length;
-        const formattedTotalAmount = new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'BDT',
-        }).format(totalAmount);
-        const formattedTotalTransactions = new Intl.NumberFormat('en-US', {
-          style: 'decimal',
-        }).format(totalTransactions);
+        const formattedTotalAmount = formatCurrency(totalAmount);
+        const formattedTotalTransactions = formatNumber(totalTransactions);
 
         return (
           <div
