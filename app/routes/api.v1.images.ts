@@ -1,7 +1,7 @@
 import z from 'zod/v4';
 import { db } from '~/db';
 import { imagesTable } from '~/db/schema';
-import { processImages } from '~/lib/openai.server';
+import { processImages } from '~/lib/google.server';
 import type { Route } from './+types/api.v1.images';
 import { json } from '~/lib/response.server';
 

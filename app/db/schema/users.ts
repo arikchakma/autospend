@@ -1,23 +1,17 @@
-import { sql } from 'drizzle-orm';
-import { int, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { pgTable, serial, text } from 'drizzle-orm/pg-core';
+import { timestamp } from 'drizzle-orm/pg-core';
+import { defaultTimestamps } from './default-timestamps';
 
 export const allowedAuthProvider = ['google'] as const;
 
-export const usersTable = sqliteTable('users', {
-  id: int('id').primaryKey({ autoIncrement: true }),
-  name: text('name', {
-    length: 255,
-  }).notNull(),
+export const usersTable = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
   email: text('email').notNull(),
   password: text('password').notNull(),
   authProvider: text('auth_provider', {
     enum: allowedAuthProvider,
   }).notNull(),
-  verifiedAt: integer('verified_at', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
+  verifiedAt: timestamp('verified_at'),
+  ...defaultTimestamps,
 });

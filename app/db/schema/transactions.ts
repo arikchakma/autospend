@@ -1,26 +1,18 @@
-import { sql } from 'drizzle-orm';
-import { int, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { defaultTimestamps } from './default-timestamps';
 
-export const transactionsTable = sqliteTable('transactions', {
-  id: int('id').primaryKey({ autoIncrement: true }),
+export const transactionsTable = pgTable('transactions', {
+  id: serial('id').primaryKey(),
   amount: integer('amount').notNull(),
   description: text('description'),
   currency: text('currency').notNull(),
-  timestamp: integer('timestamp', {
-    mode: 'timestamp',
-  }).notNull(),
+  timestamp: timestamp('timestamp').notNull(),
   image: text('image'),
-  category: text('category').default('uncategorized').notNull(),
+  category: text('category').default('other').notNull(),
   merchant: text('merchant'),
 
-  cardNumber: text('card_number').default(sql`NULL`),
-  cardType: text('card_type').default(sql`NULL`),
+  cardNumber: text('card_number'),
+  cardType: text('card_type'),
 
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`)
-    .$onUpdate(() => sql`(strftime('%s', 'now'))`),
+  ...defaultTimestamps,
 });

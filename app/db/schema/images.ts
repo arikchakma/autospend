@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm';
-import { int, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { pgTable, text, integer, serial } from 'drizzle-orm/pg-core';
+import { defaultTimestamps } from './default-timestamps';
 
 export const allowedImageStatuses = [
   'pending',
@@ -8,8 +8,8 @@ export const allowedImageStatuses = [
   'failed',
 ] as const;
 
-export const imagesTable = sqliteTable('images', {
-  id: int('id').primaryKey({ autoIncrement: true }),
+export const imagesTable = pgTable('images', {
+  id: serial('id').primaryKey(),
   name: text('name').notNull(),
   size: integer('size').notNull(),
   type: text('type').notNull(),
@@ -18,10 +18,5 @@ export const imagesTable = sqliteTable('images', {
     enum: allowedImageStatuses,
   }).default('pending'),
   error: text('error'),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`),
+  ...defaultTimestamps,
 });

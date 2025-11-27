@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const envVariables = z.object({
-  DB_FILE_NAME: z.string(),
+  DRIZZLE_DATABASE_URL: z.string(),
 
   S3_API_URL: z.string(),
   S3_BUCKET_NAME: z.string(),

@@ -4,7 +4,6 @@ import { imagesTable, transactionsTable } from '~/db/schema';
 import { z } from 'zod';
 import { db } from '~/db';
 import { eq } from 'drizzle-orm';
-import { createOpenAI } from '@ai-sdk/openai';
 import { config } from './config.server';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import PQueue from 'p-queue';
@@ -83,6 +82,10 @@ export async function extractTransactionData(images: Image) {
         },
       ],
     });
+
+    console.log('-'.repeat(20));
+    console.log('Result:', result);
+    console.log('-'.repeat(20));
 
     return result.object;
   } catch (error) {
