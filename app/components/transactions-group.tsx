@@ -32,9 +32,9 @@ export function TransactionsGroup(props: TransactionsGroupProps) {
       className="mb-3.5 rounded-xl border border-zinc-200/50 bg-zinc-100 p-1.5"
     >
       <div className="flex items-center justify-between gap-2 pr-0.5 pl-2.5">
-        <h3 className="text-lg font-medium">{formattedTitle}</h3>
+        <h3 className="text-sm font-medium">{formattedTitle}</h3>
         <div className="flex items-center gap-2">
-          <p className="text-sm text-zinc-500">
+          <p className="text-xs text-zinc-500">
             BDT {formattedTotalAmount} spent on {formattedTotalTransactions}{' '}
             purchases
           </p>

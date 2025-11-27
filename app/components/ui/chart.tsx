@@ -169,6 +169,7 @@ function ChartTooltipContent({
   }
 
   const nestLabel = payload.length === 1 && indicator !== 'dot';
+  const isAllZero = payload.every((item) => item.value === 0);
 
   return (
     <div
@@ -179,8 +180,9 @@ function ChartTooltipContent({
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
+        {isAllZero && <div className="text-zinc-500">No data</div>}
         {payload
-          .filter((item) => item.type !== 'none')
+          .filter((item) => item.type !== 'none' && item.value !== 0)
           .map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || 'value'}`;
             const itemConfig = getPayloadConfigFromPayload(config, item, key);

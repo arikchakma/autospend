@@ -279,7 +279,7 @@ const DottedBackgroundPattern = () => {
       patternUnits="userSpaceOnUse"
     >
       <circle
-        className="text-zinc-400"
+        className="text-zinc-300"
         cx="2"
         cy="2"
         r="1"

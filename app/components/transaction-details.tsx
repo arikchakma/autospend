@@ -57,17 +57,17 @@ export function TransactionDetails(props: TransactionDetailsProps) {
             <CategoryBadge category={category} />
           </div>
           <p
-            className="truncate text-sm text-zinc-500"
+            className="truncate text-xs text-zinc-500"
             title={description || undefined}
           >
             {description || 'No description'}
           </p>
         </div>
 
-        <p className="justify-self-end text-sm text-zinc-500">
+        <p className="justify-self-end text-sm font-medium text-zinc-900">
           {formattedAmount}
         </p>
-        <p className="justify-self-end text-sm text-zinc-500">
+        <p className="justify-self-end text-xs text-zinc-500">
           {formattedDate}
         </p>
       </SheetTrigger>
@@ -78,7 +78,7 @@ export function TransactionDetails(props: TransactionDetailsProps) {
       >
         <div className="hide-scrollbar grow overflow-y-auto rounded-xl bg-white p-4">
           <div className="mt-4 flex flex-col items-center justify-center gap-4">
-            <h2 className="text-4xl font-bold text-zinc-900">
+            <h2 className="text-3xl font-bold text-zinc-900">
               {formattedAmount}
             </h2>
             <CategoryBadge
