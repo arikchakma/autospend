@@ -59,9 +59,9 @@ const transactionSchema = z
   .nullable()
   .describe('Transaction data extracted from the image, return null if failed');
 
-export async function extractTransactionData(images: Image) {
+export async function extractTransactionData(image: Image) {
   try {
-    const imageUrl = `${import.meta.env.VITE_FILE_CDN_URL}/${images.path}`;
+    const imageUrl = `${import.meta.env.VITE_FILE_CDN_URL}/${image.path}`;
 
     const result = await generateObject({
       model: google('gemini-2.5-flash'),
@@ -83,14 +83,10 @@ export async function extractTransactionData(images: Image) {
       ],
     });
 
-    console.log('-'.repeat(20));
-    console.log('Result:', result);
-    console.log('-'.repeat(20));
-
     return result.object;
   } catch (error) {
     console.log('-'.repeat(20));
-    console.log('Error:', error);
+    console.log('Error extracting transaction data:', image.path, error);
     console.log('-'.repeat(20));
     return null;
   }
@@ -131,7 +127,11 @@ export async function processImages(images: Image[]) {
           cardNumber: result.card?.number,
           cardType: result.card?.type,
         });
-      } catch {
+      } catch (error) {
+        console.log('-'.repeat(20));
+        console.log('Error processing image:', image.id, error);
+        console.log('-'.repeat(20));
+
         await db
           .update(imagesTable)
           .set({

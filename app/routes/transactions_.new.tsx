@@ -1,4 +1,4 @@
-import type { Route } from './+types/new';
+import type { Route } from './+types/transactions_.new';
 import { useCallback } from 'react';
 import {
   useDropzone,
@@ -60,7 +60,7 @@ export default function Home() {
   });
 
   return (
-    <section className="mx-auto max-w-sm py-10">
+    <section className="mx-auto max-w-lg py-10">
       <div className="flex items-center gap-2 pb-12">
         <Link
           to="/"
@@ -76,31 +76,34 @@ export default function Home() {
         Export your transactions from your spreadsheet and upload them here or
         upload pictures of your transactions.
       </p>
-      <div
-        {...getRootProps({
-          className: cn(
-            'border-[1.5px] border-dashed border-zinc-200 min-h-60 flex items-center justify-center rounded-xl p-4 mt-8 bg-zinc-50',
-            isDragActive && 'border-zinc-400'
-          ),
-        })}
-      >
-        <input {...getInputProps()} />
-        <div className="mx-auto flex max-w-2xs flex-col items-center text-center text-balance">
-          <PlusIcon className="size-5 text-zinc-400" />
-          <p className="mt-3 text-zinc-500">
-            Drag and drop your files here or{' '}
-            <span className="text-black">click to browse</span>
-          </p>
+
+      <div className="mx-auto max-w-sm">
+        <div
+          {...getRootProps({
+            className: cn(
+              'border-[1.5px] border-dashed border-zinc-200 min-h-60 flex items-center justify-center rounded-xl p-4 mt-8 bg-zinc-50',
+              isDragActive && 'border-zinc-400'
+            ),
+          })}
+        >
+          <input {...getInputProps()} />
+          <div className="mx-auto flex max-w-2xs flex-col items-center text-center text-balance">
+            <PlusIcon className="size-5 text-zinc-400" />
+            <p className="mt-3 text-zinc-500">
+              Drag and drop your files here or{' '}
+              <span className="text-black">click to browse</span>
+            </p>
+          </div>
         </div>
+
+        <p className="mt-2 text-center text-xs text-zinc-400">
+          Only image files are supported at the moment
+        </p>
+
+        <FileUploadQueue />
+
+        <NextButton className="mt-4" />
       </div>
-
-      <p className="mt-2 text-center text-xs text-zinc-400">
-        Only image files are supported at the moment
-      </p>
-
-      <FileUploadQueue />
-
-      <NextButton className="mt-4" />
     </section>
   );
 }
@@ -131,6 +134,10 @@ function NextButton(props: NextButtonProps) {
     },
     onSuccess: () => {
       setFiles([]);
+      toast.success('Transactions imported successfully');
+    },
+    onError: () => {
+      toast.error('Failed to import transactions');
     },
   });
 

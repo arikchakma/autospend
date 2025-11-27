@@ -1,9 +1,9 @@
-import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, real, serial, text, timestamp } from 'drizzle-orm/pg-core';
 import { defaultTimestamps } from './default-timestamps';
 
 export const transactionsTable = pgTable('transactions', {
   id: serial('id').primaryKey(),
-  amount: integer('amount').notNull(),
+  amount: real('amount').notNull(),
   description: text('description'),
   currency: text('currency').notNull(),
   timestamp: timestamp('timestamp').notNull(),
