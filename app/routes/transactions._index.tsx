@@ -67,9 +67,9 @@ export default function Transactions(props: Route.ComponentProps) {
         return (
           <div
             key={date}
-            className="mb-2.5 rounded-xl border border-zinc-200/50 bg-zinc-100 p-1"
+            className="mb-3.5 rounded-xl border border-zinc-200/50 bg-zinc-100 p-1.5"
           >
-            <div className="flex items-center justify-between gap-2 px-2">
+            <div className="flex items-center justify-between gap-2 px-2.5">
               <h3 className="text-lg font-medium">{formattedTitle}</h3>
               <p className="text-sm text-zinc-500">
                 {formattedTotalAmount} spent on {formattedTotalTransactions}{' '}
@@ -77,7 +77,7 @@ export default function Transactions(props: Route.ComponentProps) {
               </p>
             </div>
 
-            <div className="mt-1 flex flex-col overflow-hidden rounded-lg bg-white shadow">
+            <div className="mt-1 flex flex-col divide-y divide-zinc-100 overflow-hidden rounded-lg bg-white shadow">
               {transactions.map((transaction) => {
                 const { id } = transaction;
                 return (
