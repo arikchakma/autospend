@@ -5,6 +5,7 @@ import { desc } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { getTimeOfDay } from '~/lib/time';
 import { cn } from '~/lib/classname';
+import { TransactionDetails } from '~/components/transaction-details';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -76,55 +77,11 @@ export default function Transactions(props: Route.ComponentProps) {
               </p>
             </div>
 
-            <div className="mt-1 flex flex-col rounded-lg bg-white">
+            <div className="mt-1 flex flex-col overflow-hidden rounded-lg bg-white shadow">
               {transactions.map((transaction) => {
-                const {
-                  merchant,
-                  description,
-                  amount,
-                  currency,
-                  timestamp,
-                  id,
-                  category,
-                } = transaction;
-                const formattedAmount = new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: currency,
-                }).format(amount);
-
-                const formattedDate =
-                  DateTime.fromJSDate(timestamp).toFormat('dd MMM yyyy');
-
+                const { id } = transaction;
                 return (
-                  <div
-                    key={id}
-                    className="grid grid-cols-4 items-center gap-2 p-2"
-                  >
-                    <div className="col-span-2 flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <h4
-                          className="truncate text-sm font-medium"
-                          title={merchant || undefined}
-                        >
-                          {merchant}
-                        </h4>
-                        <CategoryBadge category={category} />
-                      </div>
-                      <p
-                        className="truncate text-sm text-zinc-500"
-                        title={description || undefined}
-                      >
-                        {description || 'No description'}
-                      </p>
-                    </div>
-
-                    <p className="justify-self-end text-sm text-zinc-500">
-                      {formattedAmount}
-                    </p>
-                    <p className="justify-self-end text-sm text-zinc-500">
-                      {formattedDate}
-                    </p>
-                  </div>
+                  <TransactionDetails key={id} transaction={transaction} />
                 );
               })}
             </div>
@@ -132,39 +89,5 @@ export default function Transactions(props: Route.ComponentProps) {
         );
       })}
     </>
-  );
-}
-
-type CategoryBadgeProps = {
-  category: string;
-};
-
-function CategoryBadge(props: CategoryBadgeProps) {
-  const { category: categoryProp } = props;
-
-  const colors: Record<string, string> = {
-    food: 'bg-pink-50 text-pink-600',
-    transport: 'bg-blue-50 text-blue-600',
-    shopping: 'bg-green-50 text-green-600',
-    entertainment: 'bg-purple-50 text-purple-600',
-    accommodation: 'bg-yellow-50 text-yellow-600',
-    health: 'bg-pink-50 text-pink-600',
-    education: 'bg-orange-50 text-orange-600',
-    bills: 'bg-gray-50 text-gray-600',
-    other: 'bg-zinc-50 text-zinc-600',
-  };
-  const category = Object.keys(colors).includes(categoryProp)
-    ? categoryProp
-    : 'other';
-
-  return (
-    <span
-      className={cn(
-        'rounded-full px-2 py-0.5 text-xs font-medium capitalize',
-        colors[category]
-      )}
-    >
-      {category}
-    </span>
   );
 }
