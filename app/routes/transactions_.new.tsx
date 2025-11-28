@@ -17,7 +17,7 @@ import { useFileUploaderClient } from '~/lib/file-manager/file-upload-provider';
 import { toast } from 'sonner';
 import { useMutation } from '@tanstack/react-query';
 import { httpPost } from '~/lib/http';
-import { readTokenCookie } from '~/lib/jwt.server';
+import { getUserFromCookie } from '~/lib/jwt.server';
 
 type OnDrop<T extends File = File> = (
   acceptedFiles: T[],
@@ -35,7 +35,14 @@ export const meta: Route.MetaFunction = () => {
   ];
 };
 
-export async function loader() {}
+export async function loader(args: Route.LoaderArgs) {
+  const user = await getUserFromCookie(args.request);
+  if (!user) {
+    throw redirect('/login');
+  }
+
+  return { user };
+}
 
 export default function Home() {
   const setFiles = useSetAtom(uploadFilesAtom);
