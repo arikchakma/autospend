@@ -6,12 +6,9 @@
  *
  * @returns Response
  */
-export function json<T>(response: T, options: ResponseInit = {}): Response {
-  return new Response(JSON.stringify(response), {
+export function json<T>(data: T, options: ResponseInit = {}): T {
+  return new Response(JSON.stringify(data), {
     status: options.status || 200,
-    headers: {
-      'content-type': 'application/json',
-      ...options.headers,
-    },
-  });
+    headers: { 'content-type': 'application/json', ...options.headers },
+  }) as unknown as T;
 }

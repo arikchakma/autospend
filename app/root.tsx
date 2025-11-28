@@ -20,7 +20,13 @@ export const links: Route.LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
 ];
 
-export function Layout({ children }: { children: React.ReactNode }) {
+type LayoutProps = {
+  children: React.ReactNode;
+};
+
+export function Layout(props: LayoutProps) {
+  const { children } = props;
+
   return (
     <html lang="en">
       <head>
