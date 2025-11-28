@@ -3,8 +3,8 @@ import type { Route } from './+types/transactions._index';
 import { transactionsTable } from '~/db/schema';
 import { desc, sql, gte, lte, and } from 'drizzle-orm';
 import { DateTime } from 'luxon';
-import { ReceiptIcon } from 'lucide-react';
-import { useMemo, useState, useEffect } from 'react';
+import { ReceiptIcon, XIcon } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import type { DateRange } from 'react-day-picker';
 import {
@@ -14,6 +14,7 @@ import {
 import { TransactionsGroup } from '~/components/transactions-group';
 import { allowedCategories } from '~/lib/transaction';
 import { DatePickerWithRange } from '~/components/date-range-picker';
+import { Button } from '~/components/ui/button';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -39,7 +40,6 @@ export async function loader(args: Route.LoaderArgs) {
     : defaultStart;
   const endDate = toParam ? DateTime.fromISO(toParam).endOf('day') : defaultEnd;
 
-  // Ensure we have valid dates
   const validStartDate = startDate.isValid ? startDate : defaultStart;
   const validEndDate = endDate.isValid ? endDate : defaultEnd;
 
@@ -53,12 +53,6 @@ export async function loader(args: Route.LoaderArgs) {
       )
     )
     .orderBy(desc(transactionsTable.timestamp));
-
-  // Chart data always shows last 12 months for context, or should it match the filter?
-  // Given the user wants "simple and minimal", maybe matching the filter is better?
-  // But the chart implementation is hardcoded to 12 months.
-  // Let's stick to the existing 12 month chart for now to avoid breaking it,
-  // as the user asked to "show all transactions from last 3 months" (list view).
 
   const chartStartOfCurrentMonth = DateTime.now().startOf('month');
   const chartStartDate = chartStartOfCurrentMonth.minus({ months: 11 });
@@ -119,37 +113,25 @@ export async function loader(args: Route.LoaderArgs) {
 export default function TransactionsIndexPage(props: Route.ComponentProps) {
   const { transactions, monthlyChartData, dateRange } = props.loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
+  const hasFilters =
+    searchParams.get('from') !== null && searchParams.get('to') !== null;
 
   const [date, setDate] = useState<DateRange | undefined>({
     from: dateRange.from ? new Date(dateRange.from) : undefined,
     to: dateRange.to ? new Date(dateRange.to) : undefined,
   });
 
-  // Sync local state with URL params when they change (e.g. back button)
-  useEffect(() => {
-    if (dateRange.from && dateRange.to) {
-      setDate({
-        from: new Date(dateRange.from),
-        to: new Date(dateRange.to),
-      });
-    }
-  }, [dateRange.from, dateRange.to]);
-
   const handleDateChange = (newDate: DateRange | undefined) => {
-    setDate(newDate);
-    if (newDate?.from) {
-      const params = new URLSearchParams(searchParams);
-      params.set('from', DateTime.fromJSDate(newDate.from).toISODate()!);
-      if (newDate.to) {
-        params.set('to', DateTime.fromJSDate(newDate.to).toISODate()!);
-      } else {
-        params.delete('to');
-      }
-      setSearchParams(params);
-    } else {
-      // Clear filters? Or just don't update until both are set?
-      // Usually waiting for valid range is better.
+    const hasChanged = newDate?.from !== date?.from || newDate?.to !== date?.to;
+    if (!hasChanged || !newDate || !newDate.from || !newDate.to) {
+      return;
     }
+
+    setDate(newDate);
+    const params = new URLSearchParams();
+    params.set('from', DateTime.fromJSDate(newDate.from).toISODate() ?? '');
+    params.set('to', DateTime.fromJSDate(newDate.to).toISODate() ?? '');
+    setSearchParams(params);
   };
 
   const groupedTransactions = useMemo(() => {
@@ -168,15 +150,29 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
     );
   }, [transactions]);
 
+  const handleClearFilters = () => {
+    setDate(undefined);
+    setSearchParams(new URLSearchParams());
+  };
+
   return (
-    <div className="space-y-6">
+    <>
       <MonthlyBarChart data={monthlyChartData} />
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold tracking-tight">Transactions</h2>
-        <DatePickerWithRange date={date} onDateChange={handleDateChange} />
+      <div className="mt-10 mb-3.5 flex items-center justify-between">
+        <h2 className="text-lg tracking-tight">Transactions</h2>
+        <div className="flex items-center gap-2">
+          <DatePickerWithRange date={date} onDateChange={handleDateChange} />
+          {hasFilters && (
+            <Button variant="outline" size="icon" onClick={handleClearFilters}>
+              <XIcon className="h-4 w-4" />
+              <span className="sr-only">Clear filters</span>
+            </Button>
+          )}
+        </div>
       </div>
-      {transactions.length === 0 ? (
+
+      {transactions.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-zinc-200/50 p-4 py-12 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
             <ReceiptIcon className="h-8 w-8 text-zinc-400" />
@@ -190,17 +186,17 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
             </p>
           </div>
         </div>
-      ) : (
-        Object.entries(groupedTransactions).map(([date, transactions = []]) => {
-          return (
-            <TransactionsGroup
-              key={date}
-              date={date}
-              transactions={transactions}
-            />
-          );
-        })
       )}
-    </div>
+
+      {Object.entries(groupedTransactions).map(([date, transactions = []]) => {
+        return (
+          <TransactionsGroup
+            key={date}
+            date={date}
+            transactions={transactions}
+          />
+        );
+      })}
+    </>
   );
 }

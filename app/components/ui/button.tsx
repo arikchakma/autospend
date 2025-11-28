@@ -13,7 +13,7 @@ const buttonVariants = cva(
         destructive:
           'bg-red-500 text-white hover:bg-red-500/90 focus-visible:ring-red-500/20',
         outline:
-          'border border-zinc-200 bg-white shadow-xs hover:bg-zinc-100 hover:text-zinc-900',
+          'border border-zinc-200 bg-white hover:bg-zinc-100 hover:text-zinc-900',
         secondary: 'bg-zinc-100 text-zinc-900 hover:bg-zinc-100/80',
         ghost: 'hover:bg-zinc-100 hover:text-zinc-900',
         link: 'text-zinc-900 underline-offset-4 hover:underline',
@@ -34,23 +34,20 @@ const buttonVariants = cva(
   }
 );
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}: React.ComponentProps<'button'> &
+type ButtonProps = React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
-  }) {
+  };
+
+function Button(props: ButtonProps) {
+  const { className, variant, size, asChild = false, ...rest } = props;
   const Comp = asChild ? Slot : 'button';
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
+      {...rest}
     />
   );
 }

@@ -10,13 +10,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '~/components/ui/popover';
-import { useState } from 'react';
+import { useState, type HTMLAttributes } from 'react';
 
-interface DatePickerWithRangeProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+type DatePickerWithRangeProps = HTMLAttributes<HTMLDivElement> & {
   date?: DateRange;
   onDateChange?: (date: DateRange | undefined) => void;
-}
+};
 
 export function DatePickerWithRange(props: DatePickerWithRangeProps) {
   const { date, onDateChange, className } = props;
@@ -32,6 +31,22 @@ export function DatePickerWithRange(props: DatePickerWithRangeProps) {
     }
   };
 
+  const formatDateRange = (range: DateRange) => {
+    if (!range.from) return '';
+    if (!range.to) {
+      return DateTime.fromJSDate(range.from).toFormat('LLL dd, yyyy');
+    }
+
+    const from = DateTime.fromJSDate(range.from);
+    const to = DateTime.fromJSDate(range.to);
+
+    if (from.hasSame(to, 'year')) {
+      return `${from.toFormat('LLL dd')} - ${to.toFormat('LLL dd, yyyy')}`;
+    }
+
+    return `${from.toFormat('LLL dd, yyyy')} - ${to.toFormat('LLL dd, yyyy')}`;
+  };
+
   return (
     <div className={cn('grid gap-2', className)}>
       <Popover open={isOpen} onOpenChange={handleOpenChange}>
@@ -40,33 +55,26 @@ export function DatePickerWithRange(props: DatePickerWithRangeProps) {
             id="date"
             variant="outline"
             className={cn(
-              'w-[250px] justify-start text-left font-normal',
+              'justify-start text-left font-normal',
               !date && 'text-zinc-500'
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarIcon className="h-4 w-4" />
             {date?.from ? (
-              date.to ? (
-                <>
-                  {DateTime.fromJSDate(date.from).toFormat('LLL dd, yyyy')} -{' '}
-                  {DateTime.fromJSDate(date.to).toFormat('LLL dd, yyyy')}
-                </>
-              ) : (
-                DateTime.fromJSDate(date.from).toFormat('LLL dd, yyyy')
-              )
+              <span>{formatDateRange(date)}</span>
             ) : (
               <span>Pick a date</span>
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto rounded-xl p-0" align="end">
           <Calendar
-            initialFocus
             mode="range"
             defaultMonth={internalDate?.from}
             selected={internalDate}
             onSelect={setInternalDate}
             numberOfMonths={2}
+            className="bg-transparent"
           />
         </PopoverContent>
       </Popover>

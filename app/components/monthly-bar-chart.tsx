@@ -55,15 +55,15 @@ export type MonthlyChartData = {
   [key in TransactionCategory]: number;
 };
 
-interface MonthlyBarChartProps {
+type MonthlyBarChartProps = {
   data: MonthlyChartData[];
-}
+};
 
 export function MonthlyBarChart(props: MonthlyBarChartProps) {
   const { data } = props;
 
   return (
-    <Card className="mb-4 border-zinc-200/50 bg-zinc-50 py-4">
+    <Card className="border-zinc-200/50 bg-zinc-50 py-4">
       <CardContent className="px-4">
         <ChartContainer config={chartConfig}>
           <BarChart accessibilityLayer data={data}>
