@@ -1,4 +1,8 @@
 import type { Transaction } from '~/db/types';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { useRevalidator } from 'react-router';
+import { httpDelete } from '~/lib/http';
 import {
   CalendarIcon,
   CarIcon,
@@ -14,6 +18,7 @@ import {
   UtensilsIcon,
   ReceiptIcon,
   PencilIcon,
+  TrashIcon,
 } from 'lucide-react';
 import { DateTime } from 'luxon';
 import { cn } from '~/lib/classname';
@@ -31,9 +36,24 @@ type TransactionDetailsProps = {
 
 export function TransactionDetails(props: TransactionDetailsProps) {
   const { transaction } = props;
+  const revalidator = useRevalidator();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+
+  const { mutate: deleteTransaction, isPending: isDeleting } = useMutation({
+    mutationFn: async () => {
+      return httpDelete(`/api/transactions/${transaction.id}`);
+    },
+    onSuccess: () => {
+      toast.success('Transaction deleted successfully');
+      setIsOpen(false);
+      revalidator.revalidate();
+    },
+    onError: () => {
+      toast.error('Failed to delete transaction');
+    },
+  });
 
   const {
     merchant,
@@ -95,7 +115,7 @@ export function TransactionDetails(props: TransactionDetailsProps) {
               />
             </div>
 
-            <div className="mt-8 flex justify-center">
+            <div className="mt-8 flex justify-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -107,6 +127,22 @@ export function TransactionDetails(props: TransactionDetailsProps) {
               >
                 <PencilIcon className="size-3.5" />
                 Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-red-600 hover:bg-red-50 hover:text-red-700"
+                onClick={() => {
+                  if (
+                    confirm('Are you sure you want to delete this transaction?')
+                  ) {
+                    deleteTransaction();
+                  }
+                }}
+                disabled={isDeleting}
+              >
+                <TrashIcon className="size-3.5" />
+                Delete
               </Button>
             </div>
 
