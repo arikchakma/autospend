@@ -31,6 +31,8 @@ type TransactionDetailsProps = {
 
 export function TransactionDetails(props: TransactionDetailsProps) {
   const { transaction } = props;
+
+  const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const {
@@ -50,7 +52,7 @@ export function TransactionDetails(props: TransactionDetailsProps) {
 
   return (
     <>
-      <Sheet>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger className="grid w-full grid-cols-4 items-center gap-2 p-2.5 text-left hover:bg-zinc-50">
           <div className="col-span-2 flex flex-col gap-1">
             <div className="flex items-center gap-2">
@@ -98,7 +100,10 @@ export function TransactionDetails(props: TransactionDetailsProps) {
                 variant="outline"
                 size="sm"
                 className="gap-1.5"
-                onClick={() => setIsEditOpen(true)}
+                onClick={() => {
+                  setIsEditOpen(true);
+                  setIsOpen(false);
+                }}
               >
                 <PencilIcon className="size-3.5" />
                 Edit

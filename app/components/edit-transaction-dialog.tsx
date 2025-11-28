@@ -43,25 +43,7 @@ export function EditTransactionDialog(props: EditTransactionDialogProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // Create FormData to match how the API expects it (though httpPatch can send JSON too,
-      // the server action reads FormData. Let's stick to FormData to minimal server changes
-      // or update server to accept JSON. The user asked for "new api action endpoint" previously
-      // which typically uses formData in Remix/RR but here we are using httpPatch client side.
-      // Let's verify how the server endpoint consumes data.
-      // The file app/routes/api.transactions.$id.ts uses request.formData().
-
-      const formData = new FormData();
-      formData.append('amount', data.amount.toString());
-      formData.append('merchant', data.merchant);
-      formData.append('description', data.description);
-      formData.append('category', data.category);
-
-      // httpPatch automatically stringifies body if it's an object, but passes FormData through if body is FormData.
-      // Let's check httpPatch implementation.
-      // "body: body instanceof FormData ? body : JSON.stringify(body)"
-      // So passing FormData works.
-
-      return httpPatch(`/api/transactions/${transaction.id}`, formData as any);
+      return httpPatch(`/api/transactions/${transaction.id}`, data);
     },
     onSuccess: () => {
       toast.success('Transaction updated successfully');
@@ -77,8 +59,6 @@ export function EditTransactionDialog(props: EditTransactionDialogProps) {
     e.preventDefault();
     mutate(formData);
   };
-
-  const categories = allowedCategories;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -158,7 +138,7 @@ export function EditTransactionDialog(props: EditTransactionDialogProps) {
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent align="start">
-                  {categories.map((category) => (
+                  {allowedCategories.map((category) => (
                     <SelectItem key={category} value={category}>
                       <span className="capitalize">{category}</span>
                     </SelectItem>
