@@ -20,8 +20,8 @@ export async function loader(args: Route.LoaderArgs) {
             : undefined
         )
         .default(DateTime.now().startOf('month')),
-      page: z.number().optional().default(1),
-      limit: z.number().optional().default(10),
+      page: z.coerce.number().optional().default(1),
+      limit: z.coerce.number().optional().default(10),
     });
 
     const searchParams = Object.fromEntries(

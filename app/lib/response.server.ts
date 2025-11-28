@@ -7,8 +7,11 @@
  * @returns Response
  */
 export function json<T>(data: T, options: ResponseInit = {}): T {
+  const headers = new Headers(options.headers);
+  headers.set('content-type', 'application/json');
+
   return new Response(JSON.stringify(data), {
     status: options.status || 200,
-    headers: { 'content-type': 'application/json', ...options.headers },
+    headers,
   }) as unknown as T;
 }

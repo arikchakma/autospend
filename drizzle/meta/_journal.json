@@ -15,6 +15,13 @@
       "when": 1764223763940,
       "tag": "0001_familiar_leo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1764327300660,
+      "tag": "0002_daffy_gladiator",
+      "breakpoints": true
     }
   ]
 }

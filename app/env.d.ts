@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_FILE_CDN_URL: string;
+  readonly VITE_APP_BASE_URL: string;
 }
 
 interface ImportMeta {

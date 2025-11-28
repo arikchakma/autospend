@@ -1,6 +1,7 @@
 import { PlusIcon } from 'lucide-react';
 import { DateTime } from 'luxon';
 import { Link, Outlet } from 'react-router';
+import { GoogleLoginButton } from '~/components/google-login-button';
 import { getTimeOfDay } from '~/lib/time';
 
 export default function TransactionsLayout() {
@@ -31,6 +32,8 @@ export default function TransactionsLayout() {
           </p>
         </div>
       </div>
+
+      <GoogleLoginButton />
 
       <Outlet />
     </section>
