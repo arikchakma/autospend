@@ -1,8 +1,15 @@
 import * as jose from 'jose';
 import { config } from './config.server';
-import { createCookie } from 'react-router';
+import { createCookie, redirect } from 'react-router';
 
 export const TOKEN_COOKIE_NAME = '__autospend_jt__';
+export const TOKEN_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 30 days
+
+export const jwtCookie = createCookie(TOKEN_COOKIE_NAME, {
+  httpOnly: true,
+  path: '/',
+  sameSite: 'lax',
+});
 
 export type TokenPayload = {
   id: string;
@@ -63,4 +70,11 @@ export async function readTokenCookie(
   }
 
   return token;
+}
+
+export async function redirectIfNotAuthenticated(request: Request) {
+  const token = await readTokenCookie(request);
+  if (!token) {
+    return redirect('/login');
+  }
 }

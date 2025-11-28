@@ -2,11 +2,11 @@ import { googleAuth } from '~/lib/google-auth.server';
 import type { Route } from './+types/api.v1.auth.google._index';
 import { json } from '~/lib/response.server';
 import { HttpError } from '~/lib/http-error';
-import { google } from '@ai-sdk/google';
 import { db } from '~/db';
 import { usersTable } from '~/db/schema';
 import { eq } from 'drizzle-orm';
-import { sign } from '~/lib/jwt.server';
+import { jwtCookie, sign, TOKEN_COOKIE_MAX_AGE } from '~/lib/jwt.server';
+import { redirect } from 'react-router';
 
 export async function loader(args: Route.LoaderArgs) {
   try {
@@ -67,8 +67,12 @@ export async function loader(args: Route.LoaderArgs) {
       email: _user.email,
     });
 
-    return json({
-      token,
+    return redirect('/', {
+      headers: {
+        'Set-Cookie': await jwtCookie.serialize(token, {
+          maxAge: TOKEN_COOKIE_MAX_AGE,
+        }),
+      },
     });
   } catch (error) {
     if (HttpError.isHttpError(error)) {
