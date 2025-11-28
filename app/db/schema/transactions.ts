@@ -1,4 +1,5 @@
 import {
+  integer,
   jsonb,
   pgTable,
   real,
@@ -7,9 +8,12 @@ import {
   timestamp,
 } from 'drizzle-orm/pg-core';
 import { defaultTimestamps } from './default-timestamps';
+import { usersTable } from './users';
+import { relations } from 'drizzle-orm';
 
 export const transactionsTable = pgTable('transactions', {
   id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => usersTable.id),
   amount: real('amount').notNull(),
   description: text('description'),
   currency: text('currency').notNull(),
@@ -23,3 +27,13 @@ export const transactionsTable = pgTable('transactions', {
 
   ...defaultTimestamps,
 });
+
+export const transactionsRelations = relations(
+  transactionsTable,
+  ({ one }) => ({
+    user: one(usersTable, {
+      fields: [transactionsTable.userId],
+      references: [usersTable.id],
+    }),
+  })
+);

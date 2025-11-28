@@ -1,13 +1,21 @@
 import z from 'zod/v4';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '~/db';
 import { transactionsTable } from '~/db/schema';
 import { allowedCategories } from '~/lib/transaction';
 import type { Route } from './+types/api.v1.transactions.$id';
 import { json } from '~/lib/response.server';
+import { getUserFromCookie } from '~/lib/jwt.server';
+import { redirect } from 'react-router';
+import type { User } from '~/db/types';
 
 export async function action(args: Route.ActionArgs) {
   const { request, params } = args;
+
+  const user = await getUserFromCookie(request);
+  if (!user) {
+    throw redirect('/login');
+  }
 
   const paramsSchema = z.object({
     id: z.string().transform((val) => parseInt(val)),
@@ -31,9 +39,9 @@ export async function action(args: Route.ActionArgs) {
   switch (request.method) {
     case 'PUT':
     case 'PATCH':
-      return updateTransaction(request, id);
+      return updateTransaction(request, user, id);
     case 'DELETE':
-      return deleteTransaction(id);
+      return deleteTransaction(request, user, id);
     default:
       return json(
         {
@@ -46,9 +54,13 @@ export async function action(args: Route.ActionArgs) {
   }
 }
 
-async function deleteTransaction(id: number) {
+async function deleteTransaction(request: Request, user: User, id: number) {
   try {
-    await db.delete(transactionsTable).where(eq(transactionsTable.id, id));
+    await db
+      .delete(transactionsTable)
+      .where(
+        and(eq(transactionsTable.id, id), eq(transactionsTable.userId, user.id))
+      );
     return json({ success: true });
   } catch (error) {
     console.error('Failed to delete transaction:', error);
@@ -63,7 +75,7 @@ async function deleteTransaction(id: number) {
   }
 }
 
-async function updateTransaction(request: Request, id: number) {
+async function updateTransaction(request: Request, user: User, id: number) {
   try {
     const bodySchema = z.object({
       amount: z.number({ message: 'Amount is required' }),
@@ -91,7 +103,9 @@ async function updateTransaction(request: Request, id: number) {
         merchant: merchant || '',
         category,
       })
-      .where(eq(transactionsTable.id, id));
+      .where(
+        and(eq(transactionsTable.id, id), eq(transactionsTable.userId, user.id))
+      );
 
     return json({ success: true });
   } catch (error) {

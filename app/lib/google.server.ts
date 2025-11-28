@@ -3,7 +3,7 @@ import { type Image } from '~/db/types';
 import { imagesTable, transactionsTable } from '~/db/schema';
 import { z } from 'zod';
 import { db } from '~/db';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { config } from './config.server';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import PQueue from 'p-queue';
@@ -99,7 +99,7 @@ export async function extractTransactionData(image: Image) {
   }
 }
 
-export async function processImages(images: Image[]) {
+export async function processImages(images: Image[], userId: number) {
   const queue = new PQueue({ concurrency: 5 });
   for (const image of images) {
     queue.add(async () => {
@@ -109,7 +109,9 @@ export async function processImages(images: Image[]) {
           .set({
             status: 'processing',
           })
-          .where(eq(imagesTable.id, image.id));
+          .where(
+            and(eq(imagesTable.id, image.id), eq(imagesTable.userId, userId))
+          );
 
         const result = await extractTransactionData(image);
         if (!result) {
@@ -121,7 +123,9 @@ export async function processImages(images: Image[]) {
           .set({
             status: 'completed',
           })
-          .where(eq(imagesTable.id, image.id));
+          .where(
+            and(eq(imagesTable.id, image.id), eq(imagesTable.userId, userId))
+          );
         await db.insert(transactionsTable).values({
           timestamp: new Date(result.datetime || new Date()),
           amount: result.amount,
@@ -130,6 +134,7 @@ export async function processImages(images: Image[]) {
           category: result.category,
           description: result.description,
           image: image.path,
+          userId: userId,
 
           cardNumber: result.card?.number,
           cardType: result.card?.type,
@@ -145,7 +150,9 @@ export async function processImages(images: Image[]) {
             status: 'failed',
             error: 'Failed to extract transaction data',
           })
-          .where(eq(imagesTable.id, image.id));
+          .where(
+            and(eq(imagesTable.id, image.id), eq(imagesTable.userId, userId))
+          );
       }
     });
   }

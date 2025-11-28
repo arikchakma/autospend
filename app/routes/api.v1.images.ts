@@ -4,9 +4,16 @@ import { imagesTable } from '~/db/schema';
 import { processImages } from '~/lib/google.server';
 import type { Route } from './+types/api.v1.images';
 import { json } from '~/lib/response.server';
+import { getUserFromCookie } from '~/lib/jwt.server';
+import { redirect } from 'react-router';
 
 export async function action(args: Route.ActionArgs) {
   const { request } = args;
+
+  const user = await getUserFromCookie(request);
+  if (!user) {
+    throw redirect('/login');
+  }
 
   const bodySchema = z.object({
     images: z.array(
@@ -36,11 +43,12 @@ export async function action(args: Route.ActionArgs) {
         size: image.size,
         type: image.type,
         path: image.path,
+        userId: user.id,
       }))
     )
     .returning();
 
-  await processImages(images);
+  await processImages(images, user.id);
 
   return json({ status: 'ok' });
 }

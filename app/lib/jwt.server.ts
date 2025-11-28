@@ -1,6 +1,9 @@
 import * as jose from 'jose';
 import { config } from './config.server';
 import { createCookie, redirect } from 'react-router';
+import { usersTable } from '~/db/schema';
+import { db } from '~/db';
+import { eq } from 'drizzle-orm';
 
 export const TOKEN_COOKIE_NAME = '__autospend_jt__';
 export const TOKEN_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 30 days
@@ -53,28 +56,39 @@ export function decode(token: string): TokenPayload | null {
 
 export async function readTokenCookie(
   request: Request
-): Promise<string | undefined> {
-  let token = null;
+): Promise<string | null> {
+  const cookieHeader = request.headers.get('Cookie');
+  let token = (await jwtCookie.parse(cookieHeader)) as string | null;
+
   if (!token) {
     const authorization = request.headers.get('Authorization');
-    token = authorization ? authorization.split(' ')[1] : undefined;
+    token = authorization ? authorization.split(' ')[1] : null;
   }
 
   if (!token) {
-    return undefined;
+    return null;
   }
 
-  const claims = decode(token);
+  const claims = await verify(token);
   if (!claims || !claims?.email || !claims?.id) {
-    return undefined;
+    return null;
   }
 
   return token;
 }
 
-export async function redirectIfNotAuthenticated(request: Request) {
+export async function getUserFromCookie(request: Request) {
   const token = await readTokenCookie(request);
   if (!token) {
-    return redirect('/login');
+    return null;
   }
+
+  const claims = await verify(token);
+  if (!claims || !claims?.email || !claims?.id) {
+    return null;
+  }
+
+  return db.query.usersTable.findFirst({
+    where: eq(usersTable.email, claims.email),
+  });
 }

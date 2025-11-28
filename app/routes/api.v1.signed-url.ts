@@ -6,9 +6,17 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { config } from '~/lib/config.server';
 import { z } from 'zod';
 import path from 'node:path';
+import { getUserFromCookie } from '~/lib/jwt.server';
+import { redirect } from 'react-router';
 
 export async function action(args: Route.ActionArgs) {
   const { request } = args;
+
+  const user = await getUserFromCookie(request);
+  if (!user) {
+    throw redirect('/login');
+  }
+
   const bodySchema = z.object({
     name: z.string(),
     size: z.number().min(0),

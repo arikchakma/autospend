@@ -37,22 +37,22 @@ export async function loader(args: Route.LoaderArgs) {
       );
     }
 
-    const alreadyExists = await db.query.usersTable.findFirst({
+    let user = await db.query.usersTable.findFirst({
       where: eq(usersTable.email, googleUser.email),
     });
-    if (alreadyExists) {
-      return;
+
+    if (!user) {
+      const newUser = await db
+        .insert(usersTable)
+        .values({
+          name: googleUser.name ?? googleUser?.given_name ?? '',
+          email: googleUser.email,
+        })
+        .returning();
+      user = newUser[0];
     }
 
-    const user = await db
-      .insert(usersTable)
-      .values({
-        name: googleUser.name ?? googleUser?.given_name ?? '',
-        email: googleUser.email,
-      })
-      .returning();
-    const _user = user[0];
-    if (!_user) {
+    if (!user) {
       throw new HttpError(
         500,
         'Failed to create user',
@@ -62,9 +62,9 @@ export async function loader(args: Route.LoaderArgs) {
     }
 
     const token = await sign({
-      id: String(_user.id),
-      name: _user.name,
-      email: _user.email,
+      id: String(user.id),
+      name: user.name,
+      email: user.email,
     });
 
     return redirect('/', {

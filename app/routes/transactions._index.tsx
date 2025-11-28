@@ -1,11 +1,11 @@
 import { db } from '~/db';
 import type { Route } from './+types/transactions._index';
 import { transactionsTable } from '~/db/schema';
-import { desc, sql, gte, lte, and } from 'drizzle-orm';
+import { desc, sql, gte, lte, and, eq } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { ReceiptIcon, XIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { redirect, useSearchParams } from 'react-router';
 import type { DateRange } from 'react-day-picker';
 import {
   MonthlyBarChart,
@@ -15,6 +15,7 @@ import { TransactionsGroup } from '~/components/transactions-group';
 import { allowedCategories } from '~/lib/transaction';
 import { DatePickerWithRange } from '~/components/date-range-picker';
 import { Button } from '~/components/ui/button';
+import { getUserFromCookie } from '~/lib/jwt.server';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -27,6 +28,11 @@ export const meta: Route.MetaFunction = () => {
 };
 
 export async function loader(args: Route.LoaderArgs) {
+  const user = await getUserFromCookie(args.request);
+  if (!user) {
+    throw redirect('/login');
+  }
+
   const url = new URL(args.request.url);
   const fromParam = url.searchParams.get('from');
   const toParam = url.searchParams.get('to');
@@ -49,7 +55,8 @@ export async function loader(args: Route.LoaderArgs) {
     .where(
       and(
         gte(transactionsTable.timestamp, validStartDate.toJSDate()),
-        lte(transactionsTable.timestamp, validEndDate.toJSDate())
+        lte(transactionsTable.timestamp, validEndDate.toJSDate()),
+        eq(transactionsTable.userId, user.id)
       )
     )
     .orderBy(desc(transactionsTable.timestamp));
@@ -64,7 +71,12 @@ export async function loader(args: Route.LoaderArgs) {
       total: sql<number>`sum(${transactionsTable.amount})`,
     })
     .from(transactionsTable)
-    .where(gte(transactionsTable.timestamp, chartStartDate.toJSDate()))
+    .where(
+      and(
+        gte(transactionsTable.timestamp, chartStartDate.toJSDate()),
+        eq(transactionsTable.userId, user.id)
+      )
+    )
     .groupBy(
       sql<string>`to_char(${transactionsTable.timestamp}, 'YYYY-MM')`,
       transactionsTable.category

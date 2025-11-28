@@ -1,12 +1,19 @@
 import z from 'zod/v4';
-import { lte, gte, and, desc, count, sum } from 'drizzle-orm';
+import { lte, gte, and, desc, count, sum, eq } from 'drizzle-orm';
 import { db } from '~/db';
 import { transactionsTable } from '~/db/schema';
 import type { Route } from './+types/api.v1.transactions._index';
 import { json } from '~/lib/response.server';
 import { DateTime } from 'luxon';
+import { redirect } from 'react-router';
+import { getUserFromCookie } from '~/lib/jwt.server';
 
 export async function loader(args: Route.LoaderArgs) {
+  const user = await getUserFromCookie(args.request);
+  if (!user) {
+    throw redirect('/login');
+  }
+
   try {
     const querySchema = z.object({
       month: z
@@ -33,7 +40,8 @@ export async function loader(args: Route.LoaderArgs) {
 
     const condition = and(
       gte(transactionsTable.timestamp, startDate.toJSDate()),
-      lte(transactionsTable.timestamp, endDate.toJSDate())
+      lte(transactionsTable.timestamp, endDate.toJSDate()),
+      eq(transactionsTable.userId, user.id)
     );
 
     const { count: totalCount, total: totalAmount } = await db
