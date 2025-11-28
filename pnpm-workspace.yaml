@@ -1,6 +1,7 @@
+minimumReleaseAge: 7200
+minimumReleaseAgeExclude:
+  - react
+  - react-dom
+  - react-router
 ignoredBuiltDependencies:
-  - better-sqlite3
   - esbuild
-
-onlyBuiltDependencies:
-  - better-sqlite3

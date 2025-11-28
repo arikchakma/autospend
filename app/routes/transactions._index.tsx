@@ -1,16 +1,19 @@
 import { db } from '~/db';
 import type { Route } from './+types/transactions._index';
 import { transactionsTable } from '~/db/schema';
-import { desc, sql, gte } from 'drizzle-orm';
+import { desc, sql, gte, lte, and } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { ReceiptIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router';
+import type { DateRange } from 'react-day-picker';
 import {
   MonthlyBarChart,
   type MonthlyChartData,
 } from '~/components/monthly-bar-chart';
 import { TransactionsGroup } from '~/components/transactions-group';
 import { allowedCategories } from '~/lib/transaction';
+import { DatePickerWithRange } from '~/components/date-range-picker';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -23,14 +26,42 @@ export const meta: Route.MetaFunction = () => {
 };
 
 export async function loader(args: Route.LoaderArgs) {
+  const url = new URL(args.request.url);
+  const fromParam = url.searchParams.get('from');
+  const toParam = url.searchParams.get('to');
+
+  const now = DateTime.now();
+  const defaultStart = now.minus({ months: 3 }).startOf('day');
+  const defaultEnd = now.endOf('day');
+
+  const startDate = fromParam
+    ? DateTime.fromISO(fromParam).startOf('day')
+    : defaultStart;
+  const endDate = toParam ? DateTime.fromISO(toParam).endOf('day') : defaultEnd;
+
+  // Ensure we have valid dates
+  const validStartDate = startDate.isValid ? startDate : defaultStart;
+  const validEndDate = endDate.isValid ? endDate : defaultEnd;
+
   const transactions = await db
     .select()
     .from(transactionsTable)
-    .orderBy(desc(transactionsTable.timestamp))
-    .limit(100);
+    .where(
+      and(
+        gte(transactionsTable.timestamp, validStartDate.toJSDate()),
+        lte(transactionsTable.timestamp, validEndDate.toJSDate())
+      )
+    )
+    .orderBy(desc(transactionsTable.timestamp));
 
-  const startOfCurrentMonth = DateTime.now().startOf('month');
-  const startDate = startOfCurrentMonth.minus({ months: 11 });
+  // Chart data always shows last 12 months for context, or should it match the filter?
+  // Given the user wants "simple and minimal", maybe matching the filter is better?
+  // But the chart implementation is hardcoded to 12 months.
+  // Let's stick to the existing 12 month chart for now to avoid breaking it,
+  // as the user asked to "show all transactions from last 3 months" (list view).
+
+  const chartStartOfCurrentMonth = DateTime.now().startOf('month');
+  const chartStartDate = chartStartOfCurrentMonth.minus({ months: 11 });
 
   const rawMonthlyData = await db
     .select({
@@ -39,7 +70,7 @@ export async function loader(args: Route.LoaderArgs) {
       total: sql<number>`sum(${transactionsTable.amount})`,
     })
     .from(transactionsTable)
-    .where(gte(transactionsTable.timestamp, startDate.toJSDate()))
+    .where(gte(transactionsTable.timestamp, chartStartDate.toJSDate()))
     .groupBy(
       sql<string>`to_char(${transactionsTable.timestamp}, 'YYYY-MM')`,
       transactionsTable.category
@@ -75,11 +106,51 @@ export async function loader(args: Route.LoaderArgs) {
 
   const monthlyChartData = Array.from(monthlyDataMap.values());
 
-  return { transactions, monthlyChartData };
+  return {
+    transactions,
+    monthlyChartData,
+    dateRange: {
+      from: validStartDate.toISODate(),
+      to: validEndDate.toISODate(),
+    },
+  };
 }
 
 export default function TransactionsIndexPage(props: Route.ComponentProps) {
-  const { transactions, monthlyChartData } = props.loaderData;
+  const { transactions, monthlyChartData, dateRange } = props.loaderData;
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: dateRange.from ? new Date(dateRange.from) : undefined,
+    to: dateRange.to ? new Date(dateRange.to) : undefined,
+  });
+
+  // Sync local state with URL params when they change (e.g. back button)
+  useEffect(() => {
+    if (dateRange.from && dateRange.to) {
+      setDate({
+        from: new Date(dateRange.from),
+        to: new Date(dateRange.to),
+      });
+    }
+  }, [dateRange.from, dateRange.to]);
+
+  const handleDateChange = (newDate: DateRange | undefined) => {
+    setDate(newDate);
+    if (newDate?.from) {
+      const params = new URLSearchParams(searchParams);
+      params.set('from', DateTime.fromJSDate(newDate.from).toISODate()!);
+      if (newDate.to) {
+        params.set('to', DateTime.fromJSDate(newDate.to).toISODate()!);
+      } else {
+        params.delete('to');
+      }
+      setSearchParams(params);
+    } else {
+      // Clear filters? Or just don't update until both are set?
+      // Usually waiting for valid range is better.
+    }
+  };
 
   const groupedTransactions = useMemo(() => {
     return transactions.reduce(
@@ -97,37 +168,39 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
     );
   }, [transactions]);
 
-  if (transactions.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-zinc-200/50 p-4 py-12 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
-          <ReceiptIcon className="h-8 w-8 text-zinc-400" />
-        </div>
-        <div className="space-y-1">
-          <h3 className="text-lg font-medium text-zinc-900">
-            No transactions yet
-          </h3>
-          <p className="text-sm text-zinc-500">
-            Import your first transaction to see your spending overview.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <>
+    <div className="space-y-6">
       <MonthlyBarChart data={monthlyChartData} />
 
-      {Object.entries(groupedTransactions).map(([date, transactions = []]) => {
-        return (
-          <TransactionsGroup
-            key={date}
-            date={date}
-            transactions={transactions}
-          />
-        );
-      })}
-    </>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold tracking-tight">Transactions</h2>
+        <DatePickerWithRange date={date} onDateChange={handleDateChange} />
+      </div>
+      {transactions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-zinc-200/50 p-4 py-12 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+            <ReceiptIcon className="h-8 w-8 text-zinc-400" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-lg font-medium text-zinc-900">
+              No transactions found
+            </h3>
+            <p className="text-sm text-zinc-500">
+              Try adjusting the date range to see more transactions.
+            </p>
+          </div>
+        </div>
+      ) : (
+        Object.entries(groupedTransactions).map(([date, transactions = []]) => {
+          return (
+            <TransactionsGroup
+              key={date}
+              date={date}
+              transactions={transactions}
+            />
+          );
+        })
+      )}
+    </div>
   );
 }
