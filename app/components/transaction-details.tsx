@@ -43,7 +43,7 @@ export function TransactionDetails(props: TransactionDetailsProps) {
 
   const { mutate: deleteTransaction, isPending: isDeleting } = useMutation({
     mutationFn: async () => {
-      return httpDelete(`/api/transactions/${transaction.id}`);
+      return httpDelete(`/api/v1/transactions/${transaction.id}`);
     },
     onSuccess: () => {
       toast.success('Transaction deleted successfully');

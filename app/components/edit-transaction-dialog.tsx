@@ -43,7 +43,7 @@ export function EditTransactionDialog(props: EditTransactionDialogProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return httpPatch(`/api/transactions/${transaction.id}`, data);
+      return httpPatch(`/api/v1/transactions/${transaction.id}`, data);
     },
     onSuccess: () => {
       toast.success('Transaction updated successfully');

@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '~/db';
 import { transactionsTable } from '~/db/schema';
 import { allowedCategories } from '~/lib/transaction';
-import type { Route } from './+types/api.transactions.$id';
+import type { Route } from './+types/api.v1.transactions.$id';
 import { json } from '~/lib/response.server';
 
 export async function action(args: Route.ActionArgs) {
