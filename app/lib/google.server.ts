@@ -23,7 +23,9 @@ const transactionSchema = z
     datetime: z
       .string()
       .optional()
-      .describe('Date of the transaction, include the time if available'),
+      .describe(
+        'Date of the transaction, include the time if available, in the format YYYY-MM-DD HH:MM:SS'
+      ),
     amount: z
       .number()
       .describe('Amount of the transaction, usually the highest amount'),
