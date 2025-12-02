@@ -7,5 +7,5 @@ const client = postgres(config.DRIZZLE_DATABASE_URL, { prepare: false });
 
 export const db = drizzle(client, {
   schema,
-  logger: true,
+  logger: import.meta.env.DEV,
 });
