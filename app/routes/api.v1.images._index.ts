@@ -1,11 +1,12 @@
 import z from 'zod/v4';
 import { db } from '~/db';
 import { imagesTable } from '~/db/schema';
-import { processImages } from '~/lib/google.server';
-import type { Route } from './+types/api.v1.images';
+import type { Route } from './+types/api.v1.images._index';
 import { json } from '~/lib/response.server';
 import { getUserFromCookie } from '~/lib/jwt.server';
 import { redirect } from 'react-router';
+import { qstash } from '~/lib/qstash.server';
+import { IMAGE_PROCESS_QUEUE_URL } from '~/lib/config.server';
 
 export async function action(args: Route.ActionArgs) {
   const { request } = args;
@@ -48,7 +49,13 @@ export async function action(args: Route.ActionArgs) {
     )
     .returning();
 
-  await processImages(images, user.id);
+  await qstash.publishJSON({
+    url: IMAGE_PROCESS_QUEUE_URL,
+    body: {
+      userId: user.id,
+      images: images.map((image) => image.id),
+    },
+  });
 
   return json({ status: 'ok' });
 }

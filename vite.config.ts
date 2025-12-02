@@ -8,4 +8,7 @@ export default defineConfig({
   ssr: {
     noExternal: ['react-dropzone'],
   },
+  server: {
+    allowedHosts: ['app.daroyan.com'],
+  },
 });

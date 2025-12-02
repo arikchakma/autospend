@@ -9,3 +9,9 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=autospend
+  qstash:
+    container_name: autospend-dev-machine-qstash
+    image: public.ecr.aws/upstash/qstash:latest
+    ports:
+      - '8080:8080'
+    command: qstash dev

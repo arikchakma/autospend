@@ -12,9 +12,17 @@ const envVariables = z.object({
   GOOGLE_CLIENT_SECRET: z.string(),
   JWT_SECRET: z.string(),
   JWT_EXPIRES_IN: z.string().default('1h'),
+
+  QSTASH_URL: z.string(),
+  QSTASH_TOKEN: z.string(),
+  QSTASH_CURRENT_SIGNING_KEY: z.string(),
+  QSTASH_NEXT_SIGNING_KEY: z.string(),
 });
 
 export const config = envVariables.parse(process.env);
+
+const baseUrl = 'https://app.daroyan.com';
+export const IMAGE_PROCESS_QUEUE_URL = `${baseUrl}/api/v1/images/process`;
 
 declare global {
   namespace NodeJS {
