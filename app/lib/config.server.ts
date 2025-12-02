@@ -24,8 +24,7 @@ const envVariables = z.object({
 
 export const config = envVariables.parse(process.env);
 
-const baseUrl = 'https://app.daroyan.com';
-export const IMAGE_PROCESS_QUEUE_URL = `${baseUrl}/api/v1/images/process`;
+export const IMAGE_PROCESS_QUEUE_URL = `${import.meta.env.VITE_APP_BASE_URL}/api/v1/images/process`;
 
 declare global {
   namespace NodeJS {
