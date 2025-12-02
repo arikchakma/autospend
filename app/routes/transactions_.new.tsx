@@ -144,10 +144,10 @@ function NextButton(props: NextButtonProps) {
     },
     onSuccess: () => {
       setFiles([]);
-      toast.success('Transactions imported successfully');
+      toast.success('Transactions are being processed...');
     },
     onError: () => {
-      toast.error('Failed to import transactions');
+      toast.error('Failed to queue images for processing');
     },
   });
 

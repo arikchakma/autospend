@@ -7,11 +7,14 @@ const envVariables = z.object({
   S3_BUCKET_NAME: z.string(),
   S3_ACCESS_KEY_ID: z.string(),
   S3_SECRET_ACCESS_KEY: z.string(),
-  GOOGLE_API_KEY: z.string(),
+
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
+
   JWT_SECRET: z.string(),
   JWT_EXPIRES_IN: z.string().default('1h'),
+
+  AI_GATEWAY_API_KEY: z.string(),
 
   QSTASH_URL: z.string(),
   QSTASH_TOKEN: z.string(),

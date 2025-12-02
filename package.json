@@ -28,6 +28,7 @@
     "@react-router/serve": "^7.9.6",
     "@tanstack/react-query": "^5.90.11",
     "@upstash/qstash": "^2.8.4",
+    "@vercel/react-router": "^1.2.3",
     "ai": "^5.0.102",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

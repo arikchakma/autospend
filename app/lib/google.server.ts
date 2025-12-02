@@ -4,13 +4,7 @@ import { imagesTable, transactionsTable } from '~/db/schema';
 import { z } from 'zod';
 import { db } from '~/db';
 import { and, eq } from 'drizzle-orm';
-import { config } from './config.server';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import PQueue from 'p-queue';
-
-const google = createGoogleGenerativeAI({
-  apiKey: config.GOOGLE_API_KEY,
-});
 
 const SYSTEM_PROMPT_TEMPLATE = `You are an expert extraction algorithm.
 Only extract relevant information from the text.
@@ -66,7 +60,7 @@ export async function extractTransactionData(image: Image) {
     const imageUrl = `${import.meta.env.VITE_FILE_CDN_URL}/${image.path}`;
 
     const result = await generateObject({
-      model: google('gemini-2.5-flash'),
+      model: 'google/gemini-2.5-flash',
       schema: transactionSchema,
       messages: [
         {
