@@ -12,6 +12,7 @@ import {
   type MonthlyChartData,
 } from '~/components/monthly-bar-chart';
 import { TransactionsGroup } from '~/components/transactions-group';
+import { ProcessingImagesGroup } from '~/components/processing-images-group';
 import { allowedCategories } from '~/lib/transaction';
 import { DatePickerWithRange } from '~/components/date-range-picker';
 import { Button } from '~/components/ui/button';
@@ -182,7 +183,8 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
 
   return (
     <>
-    
+      <ProcessingImagesGroup images={images} />
+
       <MonthlyBarChart data={monthlyChartData} />
 
       <div className="mt-10 mb-3.5 flex items-center justify-between">
