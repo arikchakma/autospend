@@ -50,49 +50,49 @@ export async function loader(args: Route.LoaderArgs) {
   const validStartDate = startDate.isValid ? startDate : defaultStart;
   const validEndDate = endDate.isValid ? endDate : defaultEnd;
 
-  const transactions = await db
-    .select()
-    .from(transactionsTable)
-    .where(
-      and(
-        gte(transactionsTable.timestamp, validStartDate.toJSDate()),
-        lte(transactionsTable.timestamp, validEndDate.toJSDate()),
-        eq(transactionsTable.userId, user.id)
-      )
-    )
-    .orderBy(desc(transactionsTable.timestamp));
-
-  const images = await db
-    .select()
-    .from(imagesTable)
-    .where(
-      and(
-        eq(imagesTable.userId, user.id),
-        inArray(imagesTable.status, ['pending', 'processing'])
-      )
-    )
-    .orderBy(desc(imagesTable.createdAt));
-
   const chartStartOfCurrentMonth = DateTime.now().startOf('month');
   const chartStartDate = chartStartOfCurrentMonth.minus({ months: 11 });
 
-  const rawMonthlyData = await db
-    .select({
-      month: sql<string>`to_char(${transactionsTable.timestamp}, 'YYYY-MM')`,
-      category: transactionsTable.category,
-      total: sql<number>`sum(${transactionsTable.amount})`,
-    })
-    .from(transactionsTable)
-    .where(
-      and(
-        gte(transactionsTable.timestamp, chartStartDate.toJSDate()),
-        eq(transactionsTable.userId, user.id)
+  const [transactions, images, rawMonthlyData] = await Promise.all([
+    db
+      .select()
+      .from(transactionsTable)
+      .where(
+        and(
+          gte(transactionsTable.timestamp, validStartDate.toJSDate()),
+          lte(transactionsTable.timestamp, validEndDate.toJSDate()),
+          eq(transactionsTable.userId, user.id)
+        )
       )
-    )
-    .groupBy(
-      sql<string>`to_char(${transactionsTable.timestamp}, 'YYYY-MM')`,
-      transactionsTable.category
-    );
+      .orderBy(desc(transactionsTable.timestamp)),
+    db
+      .select()
+      .from(imagesTable)
+      .where(
+        and(
+          eq(imagesTable.userId, user.id),
+          inArray(imagesTable.status, ['pending', 'processing'])
+        )
+      )
+      .orderBy(desc(imagesTable.createdAt)),
+    db
+      .select({
+        month: sql<string>`to_char(${transactionsTable.timestamp}, 'YYYY-MM')`,
+        category: transactionsTable.category,
+        total: sql<number>`sum(${transactionsTable.amount})`,
+      })
+      .from(transactionsTable)
+      .where(
+        and(
+          gte(transactionsTable.timestamp, chartStartDate.toJSDate()),
+          eq(transactionsTable.userId, user.id)
+        )
+      )
+      .groupBy(
+        sql<string>`to_char(${transactionsTable.timestamp}, 'YYYY-MM')`,
+        transactionsTable.category
+      ),
+  ]);
 
   const monthlyDataMap = new Map<string, MonthlyChartData>();
 
