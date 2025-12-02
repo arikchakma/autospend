@@ -1,7 +1,7 @@
 import { db } from '~/db';
 import type { Route } from './+types/transactions._index';
-import { transactionsTable } from '~/db/schema';
-import { desc, sql, gte, lte, and, eq } from 'drizzle-orm';
+import { imagesTable, transactionsTable } from '~/db/schema';
+import { desc, sql, gte, lte, and, eq, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { ReceiptIcon, XIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -61,6 +61,17 @@ export async function loader(args: Route.LoaderArgs) {
     )
     .orderBy(desc(transactionsTable.timestamp));
 
+  const images = await db
+    .select()
+    .from(imagesTable)
+    .where(
+      and(
+        eq(imagesTable.userId, user.id),
+        inArray(imagesTable.status, ['pending', 'processing'])
+      )
+    )
+    .orderBy(desc(imagesTable.createdAt));
+
   const chartStartOfCurrentMonth = DateTime.now().startOf('month');
   const chartStartDate = chartStartOfCurrentMonth.minus({ months: 11 });
 
@@ -119,11 +130,13 @@ export async function loader(args: Route.LoaderArgs) {
       from: validStartDate.toISODate(),
       to: validEndDate.toISODate(),
     },
+    images,
   };
 }
 
 export default function TransactionsIndexPage(props: Route.ComponentProps) {
-  const { transactions, monthlyChartData, dateRange } = props.loaderData;
+  const { transactions, monthlyChartData, dateRange, images } =
+    props.loaderData;
   const [searchParams, setSearchParams] = useSearchParams();
   const hasFilters =
     searchParams.get('from') !== null && searchParams.get('to') !== null;
@@ -169,6 +182,7 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
 
   return (
     <>
+    
       <MonthlyBarChart data={monthlyChartData} />
 
       <div className="mt-10 mb-3.5 flex items-center justify-between">
