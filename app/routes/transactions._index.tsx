@@ -2,7 +2,7 @@ import type { Route } from './+types/transactions._index';
 import { DateTime } from 'luxon';
 import { ReceiptIcon, XIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { href, redirect } from 'react-router';
+import { href, redirect, useSearchParams } from 'react-router';
 import type { DateRange } from 'react-day-picker';
 import {
   MonthlyBarChart,
@@ -19,8 +19,8 @@ import {
 } from '~/queries/transaction';
 import { useSuspenseQueries } from '@tanstack/react-query';
 import { listImagesOptions } from '~/queries/image';
-import { useQueryState } from 'nuqs';
 import { isLoggedIn } from '~/lib/jwt';
+import { deleteUrlParam, setUrlParams } from '~/lib/browser';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -45,8 +45,9 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
   const defaultFrom = now.minus({ months: 3 }).startOf('day');
   const defaultTo = now.endOf('day');
 
-  const [from, setFrom] = useQueryState('from');
-  const [to, setTo] = useQueryState('to');
+  const [searchParams] = useSearchParams();
+  const from = searchParams.get('from');
+  const to = searchParams.get('to');
   const hasFilters = from !== null && to !== null;
 
   const [date, setDate] = useState<DateRange>({
@@ -109,8 +110,6 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
       }
     }
 
-    console.log(Array.from(monthlyDataMap.values()));
-
     return Array.from(monthlyDataMap.values());
   }, [stats]);
 
@@ -123,8 +122,10 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
     const newFrom = DateTime.fromJSDate(newDate.from).startOf('day');
     const newTo = DateTime.fromJSDate(newDate.to).endOf('day');
     setDate({ from: newFrom.toJSDate(), to: newTo.toJSDate() });
-    setFrom(newFrom.toFormat('dd-MM-yyyy'));
-    setTo(newTo.toFormat('dd-MM-yyyy'));
+    setUrlParams({
+      from: newFrom.toFormat('dd-MM-yyyy'),
+      to: newTo.toFormat('dd-MM-yyyy'),
+    });
   };
 
   const groupedTransactions = useMemo(() => {
@@ -145,8 +146,8 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
 
   const handleClearFilters = () => {
     setDate({ from: defaultFrom.toJSDate(), to: defaultTo.toJSDate() });
-    setFrom(null);
-    setTo(null);
+    deleteUrlParam('from');
+    deleteUrlParam('to');
   };
 
   return (

@@ -45,7 +45,6 @@
     "luxon": "^3.7.2",
     "motion": "^12.23.25",
     "nprogress": "^0.2.0",
-    "nuqs": "^2.8.2",
     "oauth4webapi": "^3.8.3",
     "openai": "^6.9.1",
     "p-queue": "^9.0.1",

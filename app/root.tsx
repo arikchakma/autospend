@@ -15,7 +15,6 @@ import { Toaster } from 'sonner';
 import { NavLoadingBar } from './components/nav-loading-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '~/lib/query-client';
-import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { Loader2Icon } from 'lucide-react';
 
 export const links: Route.LinksFunction = () => [
@@ -50,27 +49,25 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <FileUploaderClientProvider client={fileUploaderClient}>
-        <NuqsAdapter>
-          <Outlet />
-          <Toaster
-            position="bottom-center"
-            richColors
-            className="flex w-full items-center justify-center rounded-xl bg-zinc-800 px-5 py-2 text-zinc-200 shadow-lg"
-            offset={{
-              top: 15,
-            }}
-            visibleToasts={1}
-            toastOptions={{
-              className: '!w-fit !bg-zinc-800 !text-zinc-300 !border-zinc-900',
-              style: {
-                width: 'fit-content',
-                maxWidth: 'fit-content',
-                padding: '8px 15px',
-              },
-            }}
-          />
-          <NavLoadingBar />
-        </NuqsAdapter>
+        <Outlet />
+        <Toaster
+          position="bottom-center"
+          richColors
+          className="flex w-full items-center justify-center rounded-xl bg-zinc-800 px-5 py-2 text-zinc-200 shadow-lg"
+          offset={{
+            top: 15,
+          }}
+          visibleToasts={1}
+          toastOptions={{
+            className: '!w-fit !bg-zinc-800 !text-zinc-300 !border-zinc-900',
+            style: {
+              width: 'fit-content',
+              maxWidth: 'fit-content',
+              padding: '8px 15px',
+            },
+          }}
+        />
+        <NavLoadingBar />
       </FileUploaderClientProvider>
     </QueryClientProvider>
   );
