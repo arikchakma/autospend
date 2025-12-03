@@ -16,6 +16,7 @@ import { NavLoadingBar } from './components/nav-loading-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '~/lib/query-client';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
+import { Loader2Icon } from 'lucide-react';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
@@ -101,5 +102,19 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
         </pre>
       )}
     </main>
+  );
+}
+
+export function HydrateFallback() {
+  return (
+    <div className="bg-opacity-75 fixed top-0 left-0 z-100 flex h-full w-full items-center justify-center bg-white">
+      <div className="flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2">
+        <Loader2Icon className="size-4 animate-spin stroke-[2.5]" />
+        <span className="ml-2 font-medium">
+          Please wait&nbsp;
+          <span className="animate-pulse">...</span>
+        </span>
+      </div>
+    </div>
   );
 }
