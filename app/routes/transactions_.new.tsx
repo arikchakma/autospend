@@ -11,13 +11,13 @@ import { FileUploadQueue } from '~/components/file-upload-queue';
 import { useAtom, useSetAtom } from 'jotai';
 import { uploadFilesAtom, uploadingFilesAtom } from '~/atoms/upload-files';
 import { useIsFileUploading } from '~/lib/file-manager/use-is-file-uploading';
-import { Link, redirect } from 'react-router';
+import { href, Link, redirect } from 'react-router';
 import { useHasFileUploadingError } from '~/lib/file-manager/use-has-file-uploading-error';
 import { useFileUploaderClient } from '~/lib/file-manager/file-upload-provider';
 import { toast } from 'sonner';
 import { useMutation } from '@tanstack/react-query';
 import { httpPost } from '~/lib/http';
-import { getUserFromCookie } from '~/lib/jwt.server';
+import { getUser } from '~/lib/jwt';
 
 type OnDrop<T extends File = File> = (
   acceptedFiles: T[],
@@ -35,10 +35,10 @@ export const meta: Route.MetaFunction = () => {
   ];
 };
 
-export async function loader(args: Route.LoaderArgs) {
-  const user = await getUserFromCookie(args.request);
+export async function clientLoader(args: Route.ClientLoaderArgs) {
+  const user = getUser();
   if (!user) {
-    throw redirect('/login');
+    return redirect(href('/login'));
   }
 
   return { user };

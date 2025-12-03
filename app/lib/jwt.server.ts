@@ -1,18 +1,10 @@
 import * as jose from 'jose';
 import { config } from './config.server';
-import { createCookie, redirect } from 'react-router';
 import { usersTable } from '~/db/schema';
 import { db } from '~/db';
 import { eq } from 'drizzle-orm';
-
-export const TOKEN_COOKIE_NAME = '__autospend_jt__';
-export const TOKEN_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 30 days
-
-export const jwtCookie = createCookie(TOKEN_COOKIE_NAME, {
-  httpOnly: true,
-  path: '/',
-  sameSite: 'lax',
-});
+import cookie from 'cookie';
+import { TOKEN_COOKIE_NAME } from './jwt';
 
 export type TokenPayload = {
   id: string;
@@ -58,7 +50,8 @@ export async function readTokenCookie(
   request: Request
 ): Promise<string | null> {
   const cookieHeader = request.headers.get('Cookie');
-  let token = (await jwtCookie.parse(cookieHeader)) as string | null;
+  const parsed = cookie.parse(cookieHeader ?? '');
+  let token = parsed[TOKEN_COOKIE_NAME] as string | null;
 
   if (!token) {
     const authorization = request.headers.get('Authorization');

@@ -1,6 +1,6 @@
 import z from 'zod/v4';
 import { db } from '~/db';
-import { allowedImageStatuses, imagesTable } from '~/db/schema';
+import { imagesTable } from '~/db/schema';
 import type { Route } from './+types/api.v1.images._index';
 import { json } from '~/lib/response.server';
 import { getUserFromCookie } from '~/lib/jwt.server';
@@ -8,6 +8,7 @@ import { redirect } from 'react-router';
 import { qstash } from '~/lib/qstash.server';
 import { IMAGE_PROCESS_QUEUE_URL } from '~/lib/config.server';
 import { and, desc, eq, inArray } from 'drizzle-orm';
+import type { Image } from '~/db/types';
 
 export async function loader(args: Route.LoaderArgs) {
   const { request } = args;
@@ -20,7 +21,13 @@ export async function loader(args: Route.LoaderArgs) {
   const queryParams = Object.fromEntries(url.searchParams);
   const querySchema = z.object({
     status: z
-      .array(z.enum(allowedImageStatuses))
+      .string()
+      .transform((val) =>
+        val
+          .split(',')
+          .map((status) => status.trim())
+          .filter(Boolean)
+      )
       .optional()
       .default(['pending', 'processing']),
   });
@@ -37,13 +44,17 @@ export async function loader(args: Route.LoaderArgs) {
     );
   }
 
+  const statuses = query.status.filter(Boolean) as NonNullable<
+    Image['status']
+  >[];
+
   const images = await db
     .select()
     .from(imagesTable)
     .where(
       and(
         eq(imagesTable.userId, user.id),
-        inArray(imagesTable.status, query.status)
+        inArray(imagesTable.status, statuses)
       )
     )
     .orderBy(desc(imagesTable.createdAt));

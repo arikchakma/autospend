@@ -1,10 +1,10 @@
 import { queryOptions } from '@tanstack/react-query';
 import { httpGet } from '~/lib/http';
-import type { Route } from '../routes/+types/api.v1.transactions._index';
 import type { Transaction } from '~/db/types';
 
 type ListTransactionsOptions = {
-  month: string;
+  from: string;
+  to: string;
   page?: number;
   limit?: number;
 };
@@ -19,15 +19,33 @@ type ListTransactionsResponse = {
 };
 
 export function listTransactionsOptions(options: ListTransactionsOptions) {
-  const { month, page = 1, limit = 10 } = options;
+  const { from, to, page = 1, limit = 10 } = options;
 
   return queryOptions({
-    queryKey: ['transactions', month],
+    queryKey: ['transactions', { from, to }],
     queryFn: () =>
       httpGet<ListTransactionsResponse>('/api/v1/transactions', {
-        month,
+        from,
+        to,
         page,
         limit,
       }),
+  });
+}
+
+type MonthlyChartData = {
+  month: string;
+  category: Transaction['category'];
+  total: number;
+};
+
+type MonthlyChartResponse = {
+  stats: MonthlyChartData[];
+};
+
+export function monthlyChartOptions() {
+  return queryOptions({
+    queryKey: ['monthly-chart'],
+    queryFn: () => httpGet<MonthlyChartResponse>('/api/v1/transactions/stats'),
   });
 }

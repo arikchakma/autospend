@@ -26,10 +26,14 @@ type ApiReturn<ResponseType> = ResponseType;
  * @param options
  */
 export async function httpCall<ResponseType = AppResponse>(
-  url: string,
+  path: string,
   options?: HttpOptionsType
 ): Promise<ApiReturn<ResponseType>> {
   try {
+    const baseUrl = import.meta.env.VITE_APP_BASE_URL;
+    const fullUrl = path.startsWith('http') ? path : `${baseUrl}${path}`;
+    console.log(fullUrl);
+
     const isMultiPartFormData = options?.body instanceof FormData;
 
     const headers = new Headers({
@@ -41,7 +45,7 @@ export async function httpCall<ResponseType = AppResponse>(
       headers.set('Content-Type', 'application/json');
     }
 
-    const response = await fetch(url, {
+    const response = await fetch(fullUrl, {
       credentials: 'include',
       ...options,
       headers,

@@ -1,12 +1,15 @@
 import { googleAuth } from '~/lib/google-auth.server';
-import type { Route } from './+types/api.v1.auth.google._index';
+import type { Route } from './+types/api.v1.auth.google.callback';
 import { json } from '~/lib/response.server';
 import { HttpError } from '~/lib/http-error';
 import { db } from '~/db';
 import { usersTable } from '~/db/schema';
 import { eq } from 'drizzle-orm';
-import { jwtCookie, sign, TOKEN_COOKIE_MAX_AGE } from '~/lib/jwt.server';
-import { redirect } from 'react-router';
+import { sign } from '~/lib/jwt.server';
+import { setAuthToken } from '~/lib/jwt';
+import { href, redirect, useNavigate } from 'react-router';
+import { Loader2Icon } from 'lucide-react';
+import { useEffect } from 'react';
 
 export async function loader(args: Route.LoaderArgs) {
   try {
@@ -67,13 +70,7 @@ export async function loader(args: Route.LoaderArgs) {
       email: user.email,
     });
 
-    return redirect('/', {
-      headers: {
-        'Set-Cookie': await jwtCookie.serialize(token, {
-          maxAge: TOKEN_COOKIE_MAX_AGE,
-        }),
-      },
-    });
+    return json({ token });
   } catch (error) {
     if (HttpError.isHttpError(error)) {
       return json(
@@ -97,4 +94,33 @@ export async function loader(args: Route.LoaderArgs) {
       { status: 500 }
     );
   }
+}
+
+export default function GoogleCallbackPage(props: Route.ComponentProps) {
+  const { loaderData } = props;
+  const token = 'token' in loaderData ? loaderData.token : null;
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) {
+      navigate(href('/login'));
+      return;
+    }
+
+    setAuthToken(token);
+    navigate(href('/transactions'));
+  }, [token, navigate]);
+
+  return (
+    <div className="bg-opacity-75 fixed top-0 left-0 z-100 flex h-full w-full items-center justify-center bg-white">
+      <div className="flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2">
+        <Loader2Icon className="size-4 animate-spin stroke-[2.5]" />
+        <span className="ml-2 font-medium">
+          Please wait&nbsp;
+          <span className="animate-pulse">...</span>
+        </span>
+      </div>
+    </div>
+  );
 }

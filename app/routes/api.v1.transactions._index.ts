@@ -16,31 +16,22 @@ export async function loader(args: Route.LoaderArgs) {
 
   try {
     const querySchema = z.object({
-      month: z
+      from: z
         .string()
-        .optional()
-        .transform((val) =>
-          // The date will be in the format of DD-MM-YYYY
-          // for better compatibility with the frontend date picker
-          val
-            ? DateTime.fromFormat(val, 'dd-MM-yyyy').startOf('month')
-            : undefined
-        )
-        .default(DateTime.now().startOf('month')),
+        .transform((val) => DateTime.fromFormat(val, 'dd-MM-yyyy')),
+      to: z.string().transform((val) => DateTime.fromFormat(val, 'dd-MM-yyyy')),
       page: z.coerce.number().optional().default(1),
-      limit: z.coerce.number().optional().default(10),
+      limit: z.coerce.number().optional().default(100),
     });
 
     const searchParams = Object.fromEntries(
       new URL(args.request.url).searchParams
     );
-    const { month, page, limit } = querySchema.parse(searchParams);
-    const startDate = month.startOf('month');
-    const endDate = month.endOf('month');
+    const { from, to, page, limit } = querySchema.parse(searchParams);
 
     const condition = and(
-      gte(transactionsTable.timestamp, startDate.toJSDate()),
-      lte(transactionsTable.timestamp, endDate.toJSDate()),
+      gte(transactionsTable.timestamp, from.toJSDate()),
+      lte(transactionsTable.timestamp, to.toJSDate()),
       eq(transactionsTable.userId, user.id)
     );
 

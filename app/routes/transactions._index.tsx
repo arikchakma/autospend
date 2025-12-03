@@ -1,11 +1,8 @@
-import { db } from '~/db';
 import type { Route } from './+types/transactions._index';
-import { imagesTable, transactionsTable } from '~/db/schema';
-import { desc, sql, gte, lte, and, eq, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { ReceiptIcon, XIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { redirect, useSearchParams } from 'react-router';
+import { href, redirect } from 'react-router';
 import type { DateRange } from 'react-day-picker';
 import {
   MonthlyBarChart,
@@ -16,7 +13,14 @@ import { ProcessingImagesGroup } from '~/components/processing-images-group';
 import { allowedCategories } from '~/lib/transaction';
 import { DatePickerWithRange } from '~/components/date-range-picker';
 import { Button } from '~/components/ui/button';
-import { getUserFromCookie } from '~/lib/jwt.server';
+import {
+  listTransactionsOptions,
+  monthlyChartOptions,
+} from '~/queries/transaction';
+import { useSuspenseQueries } from '@tanstack/react-query';
+import { listImagesOptions } from '~/queries/image';
+import { useQueryState } from 'nuqs';
+import { isLoggedIn } from '~/lib/jwt';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -28,124 +32,87 @@ export const meta: Route.MetaFunction = () => {
   ];
 };
 
-export async function loader(args: Route.LoaderArgs) {
-  const user = await getUserFromCookie(args.request);
-  if (!user) {
-    throw redirect('/login');
+export function clientLoader() {
+  if (isLoggedIn()) {
+    return;
   }
 
-  const url = new URL(args.request.url);
-  const fromParam = url.searchParams.get('from');
-  const toParam = url.searchParams.get('to');
-
-  const now = DateTime.now();
-  const defaultStart = now.minus({ months: 3 }).startOf('day');
-  const defaultEnd = now.endOf('day');
-
-  const startDate = fromParam
-    ? DateTime.fromISO(fromParam).startOf('day')
-    : defaultStart;
-  const endDate = toParam ? DateTime.fromISO(toParam).endOf('day') : defaultEnd;
-
-  const validStartDate = startDate.isValid ? startDate : defaultStart;
-  const validEndDate = endDate.isValid ? endDate : defaultEnd;
-
-  const chartStartOfCurrentMonth = DateTime.now().startOf('month');
-  const chartStartDate = chartStartOfCurrentMonth.minus({ months: 11 });
-
-  const [transactions, images, rawMonthlyData] = await Promise.all([
-    db
-      .select()
-      .from(transactionsTable)
-      .where(
-        and(
-          gte(transactionsTable.timestamp, validStartDate.toJSDate()),
-          lte(transactionsTable.timestamp, validEndDate.toJSDate()),
-          eq(transactionsTable.userId, user.id)
-        )
-      )
-      .orderBy(desc(transactionsTable.timestamp)),
-    db
-      .select()
-      .from(imagesTable)
-      .where(
-        and(
-          eq(imagesTable.userId, user.id),
-          inArray(imagesTable.status, ['pending', 'processing'])
-        )
-      )
-      .orderBy(desc(imagesTable.createdAt)),
-    db
-      .select({
-        month: sql<string>`to_char(${transactionsTable.timestamp}, 'YYYY-MM')`,
-        category: transactionsTable.category,
-        total: sql<number>`sum(${transactionsTable.amount})`,
-      })
-      .from(transactionsTable)
-      .where(
-        and(
-          gte(transactionsTable.timestamp, chartStartDate.toJSDate()),
-          eq(transactionsTable.userId, user.id)
-        )
-      )
-      .groupBy(
-        sql<string>`to_char(${transactionsTable.timestamp}, 'YYYY-MM')`,
-        transactionsTable.category
-      ),
-  ]);
-
-  const monthlyDataMap = new Map<string, MonthlyChartData>();
-
-  for (let i = 11; i >= 0; i--) {
-    const d = DateTime.now().minus({ months: i });
-    const key = d.toFormat('yyyy-MM');
-    monthlyDataMap.set(key, {
-      month: d.toFormat('MMMM'),
-      food: 0,
-      transport: 0,
-      shopping: 0,
-      entertainment: 0,
-      accommodation: 0,
-      health: 0,
-      education: 0,
-      bills: 0,
-      other: 0,
-    });
-  }
-
-  for (const row of rawMonthlyData) {
-    const entry = monthlyDataMap.get(row.month);
-    if (entry) {
-      const category =
-        allowedCategories.find((c) => c === row.category) || 'other';
-      entry[category] = (entry[category] || 0) + row.total;
-    }
-  }
-
-  const monthlyChartData = Array.from(monthlyDataMap.values());
-
-  return {
-    transactions,
-    monthlyChartData,
-    dateRange: {
-      from: validStartDate.toISODate(),
-      to: validEndDate.toISODate(),
-    },
-    images,
-  };
+  return redirect(href('/login'));
 }
 
 export default function TransactionsIndexPage(props: Route.ComponentProps) {
-  const { transactions, monthlyChartData, dateRange, images } =
-    props.loaderData;
-  const [searchParams, setSearchParams] = useSearchParams();
-  const hasFilters =
-    searchParams.get('from') !== null && searchParams.get('to') !== null;
+  const now = DateTime.now();
+  const defaultFrom = now.minus({ months: 3 }).startOf('day');
+  const defaultTo = now.endOf('day');
 
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: dateRange.from ? new Date(dateRange.from) : undefined,
-    to: dateRange.to ? new Date(dateRange.to) : undefined,
+  const [from, setFrom] = useQueryState('from');
+  const [to, setTo] = useQueryState('to');
+  const hasFilters = from !== null && to !== null;
+
+  const [date, setDate] = useState<DateRange>({
+    from: from
+      ? DateTime.fromFormat(from, 'dd-MM-yyyy').toJSDate()
+      : defaultFrom.toJSDate(),
+    to: to
+      ? DateTime.fromFormat(to, 'dd-MM-yyyy').toJSDate()
+      : defaultTo.toJSDate(),
   });
+
+  const [
+    { data: statsData },
+    { data: imagesData },
+    { data: transactionsData },
+  ] = useSuspenseQueries({
+    queries: [
+      monthlyChartOptions(),
+      listImagesOptions({ status: ['pending', 'processing'] }),
+      listTransactionsOptions({
+        from: date.from
+          ? DateTime.fromJSDate(date.from).toFormat('dd-MM-yyyy')
+          : defaultFrom.toFormat('dd-MM-yyyy'),
+        to: date.to
+          ? DateTime.fromJSDate(date.to).toFormat('dd-MM-yyyy')
+          : defaultTo.toFormat('dd-MM-yyyy'),
+      }),
+    ],
+  });
+
+  const { data: transactions } = transactionsData;
+  const { images } = imagesData;
+  const { stats } = statsData;
+
+  const monthlyChartData = useMemo(() => {
+    const monthlyDataMap = new Map<string, MonthlyChartData>();
+    for (let i = 11; i >= 0; i--) {
+      const d = DateTime.now().minus({ months: i });
+      const key = d.toFormat('yyyy-MM');
+      monthlyDataMap.set(key, {
+        month: d.toFormat('MMMM'),
+        food: 0,
+        transport: 0,
+        shopping: 0,
+        entertainment: 0,
+        accommodation: 0,
+        health: 0,
+        education: 0,
+        bills: 0,
+        other: 0,
+      });
+    }
+
+    for (const row of stats) {
+      const entry = monthlyDataMap.get(row.month);
+      if (entry) {
+        const category =
+          allowedCategories.find((c) => c === row.category) || 'other';
+        entry[category] = (entry[category] || 0) + row.total;
+      }
+    }
+
+    console.log(Array.from(monthlyDataMap.values()));
+
+    return Array.from(monthlyDataMap.values());
+  }, [stats]);
 
   const handleDateChange = (newDate: DateRange | undefined) => {
     const hasChanged = newDate?.from !== date?.from || newDate?.to !== date?.to;
@@ -153,19 +120,19 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
       return;
     }
 
-    setDate(newDate);
-    const params = new URLSearchParams();
-    params.set('from', DateTime.fromJSDate(newDate.from).toISODate() ?? '');
-    params.set('to', DateTime.fromJSDate(newDate.to).toISODate() ?? '');
-    setSearchParams(params);
+    const newFrom = DateTime.fromJSDate(newDate.from).startOf('day');
+    const newTo = DateTime.fromJSDate(newDate.to).endOf('day');
+    setDate({ from: newFrom.toJSDate(), to: newTo.toJSDate() });
+    setFrom(newFrom.toFormat('dd-MM-yyyy'));
+    setTo(newTo.toFormat('dd-MM-yyyy'));
   };
 
   const groupedTransactions = useMemo(() => {
     return transactions.reduce(
       (acc, transaction) => {
-        const date = DateTime.fromJSDate(transaction.timestamp).toFormat(
-          'yyyy-MM'
-        );
+        const date = DateTime.fromJSDate(
+          new Date(transaction.timestamp)
+        ).toFormat('yyyy-MM');
         if (!acc[date]) {
           acc[date] = [];
         }
@@ -177,8 +144,9 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
   }, [transactions]);
 
   const handleClearFilters = () => {
-    setDate(undefined);
-    setSearchParams(new URLSearchParams());
+    setDate({ from: defaultFrom.toJSDate(), to: defaultTo.toJSDate() });
+    setFrom(null);
+    setTo(null);
   };
 
   return (

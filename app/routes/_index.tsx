@@ -1,6 +1,6 @@
-import { redirect } from 'react-router';
+import { href, redirect } from 'react-router';
 import type { Route } from './+types/_index';
 
 export function loader(args: Route.LoaderArgs) {
-  return redirect('/transactions');
+  return redirect(href('/transactions'));
 }

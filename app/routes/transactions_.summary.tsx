@@ -18,8 +18,6 @@ export const meta: Route.MetaFunction = () => {
   return [{ title: 'Yearly Summary' }];
 };
 
-export const loader = async (args: Route.LoaderArgs) => {};
-
 export default function YearlySummary() {
   const data = {
     year: 2025,
