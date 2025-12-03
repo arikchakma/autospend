@@ -6,7 +6,7 @@ import { json } from '~/lib/response.server';
 import { getUserFromCookie } from '~/lib/jwt.server';
 import { redirect } from 'react-router';
 import { qstash } from '~/lib/qstash.server';
-import { IMAGE_PROCESS_QUEUE_URL } from '~/lib/config.server';
+import { IMAGE_PROCESS_QUEUE_URL } from '~/lib/constants';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { Image } from '~/db/types';
 

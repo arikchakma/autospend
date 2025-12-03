@@ -30,9 +30,9 @@ export async function loader(args: Route.LoaderArgs) {
     const { from, to, page, limit } = querySchema.parse(searchParams);
 
     const condition = and(
+      eq(transactionsTable.userId, user.id),
       gte(transactionsTable.timestamp, from.toJSDate()),
-      lte(transactionsTable.timestamp, to.toJSDate()),
-      eq(transactionsTable.userId, user.id)
+      lte(transactionsTable.timestamp, to.toJSDate())
     );
 
     const { count: totalCount, total: totalAmount } = await db
