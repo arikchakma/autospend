@@ -104,13 +104,7 @@ export function MonthlyBarChart(props: MonthlyBarChartProps) {
                   dataKey={key}
                   fill={chartConfig[key as keyof typeof chartConfig].color}
                   stackId="a"
-                  radius={
-                    isFirst
-                      ? [0, 0, 4, 4]
-                      : isLast
-                        ? [4, 4, 0, 0]
-                        : [0, 0, 0, 0]
-                  }
+                  radius={4}
                   className="stroke-white stroke-1"
                   isAnimationActive={false}
                 />
