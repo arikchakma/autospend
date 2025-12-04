@@ -30,7 +30,6 @@ export function setAuthToken(token: string) {
 
 export function isLoggedIn() {
   const token = Cookies.get(TOKEN_COOKIE_NAME);
-  console.log(token);
   if (!token) {
     return false;
   }

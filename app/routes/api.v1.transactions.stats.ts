@@ -10,7 +10,14 @@ import type { Route } from './+types/api.v1.transactions.stats';
 export async function loader(args: Route.LoaderArgs) {
   const user = await getUserFromCookie(args.request);
   if (!user) {
-    throw redirect('/login');
+    return json(
+      {
+        status: 401,
+        message: 'Unauthorized',
+        errors: [{ message: 'Unauthorized' }],
+      },
+      { status: 401 }
+    );
   }
 
   const chartStartOfCurrentMonth = DateTime.now().startOf('month');

@@ -11,7 +11,14 @@ import { getUserFromCookie } from '~/lib/jwt.server';
 export async function loader(args: Route.LoaderArgs) {
   const user = await getUserFromCookie(args.request);
   if (!user) {
-    throw redirect('/login');
+    return json(
+      {
+        status: 401,
+        message: 'Unauthorized',
+        errors: [{ message: 'Unauthorized' }],
+      },
+      { status: 401 }
+    );
   }
 
   try {

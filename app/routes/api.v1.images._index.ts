@@ -14,7 +14,14 @@ export async function loader(args: Route.LoaderArgs) {
   const { request } = args;
   const user = await getUserFromCookie(request);
   if (!user) {
-    throw redirect('/login');
+    return json(
+      {
+        status: 401,
+        message: 'Unauthorized',
+        errors: [{ message: 'Unauthorized' }],
+      },
+      { status: 401 }
+    );
   }
 
   const url = new URL(request.url);

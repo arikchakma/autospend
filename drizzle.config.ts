@@ -6,11 +6,11 @@ if (!process.env.DRIZZLE_DATABASE_URL) {
 }
 
 export default defineConfig({
-  verbose: true,
   schema: './app/db/schema/index.ts',
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
     url: process.env.DRIZZLE_DATABASE_URL,
   },
+  verbose: true,
 });

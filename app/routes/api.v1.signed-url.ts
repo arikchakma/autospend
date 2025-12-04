@@ -7,14 +7,20 @@ import { config } from '~/lib/config.server';
 import { z } from 'zod';
 import path from 'node:path';
 import { getUserFromCookie } from '~/lib/jwt.server';
-import { redirect } from 'react-router';
 
 export async function action(args: Route.ActionArgs) {
   const { request } = args;
 
   const user = await getUserFromCookie(request);
   if (!user) {
-    throw redirect('/login');
+    return json(
+      {
+        status: 401,
+        message: 'Unauthorized',
+        errors: [{ message: 'Unauthorized' }],
+      },
+      { status: 401 }
+    );
   }
 
   const bodySchema = z.object({

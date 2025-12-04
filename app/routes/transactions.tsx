@@ -8,7 +8,6 @@ import { clearAuthToken, getUser } from '~/lib/jwt';
 export async function clientLoader(args: Route.ClientLoaderArgs) {
   const user = getUser();
   if (!user) {
-    console.log('No user found, redirecting to login');
     return redirect(href('/login'));
   }
 

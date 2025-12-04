@@ -14,7 +14,14 @@ export async function action(args: Route.ActionArgs) {
 
   const user = await getUserFromCookie(request);
   if (!user) {
-    throw redirect('/login');
+    return json(
+      {
+        status: 401,
+        message: 'Unauthorized',
+        errors: [{ message: 'Unauthorized' }],
+      },
+      { status: 401 }
+    );
   }
 
   const paramsSchema = z.object({

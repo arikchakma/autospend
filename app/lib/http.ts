@@ -1,3 +1,5 @@
+import { clearAuthToken } from './jwt';
+
 type HttpOptionsType = RequestInit;
 
 type AppResponse = Record<string, any>;
@@ -32,7 +34,6 @@ export async function httpCall<ResponseType = AppResponse>(
   try {
     const baseUrl = import.meta.env.VITE_APP_BASE_URL;
     const fullUrl = path.startsWith('http') ? path : `${baseUrl}${path}`;
-    console.log(fullUrl);
 
     const isMultiPartFormData = options?.body instanceof FormData;
 
@@ -58,6 +59,7 @@ export async function httpCall<ResponseType = AppResponse>(
 
     // Logout user if token is invalid
     if (data.status === 401) {
+      clearAuthToken();
       return null as unknown as ApiReturn<ResponseType>;
     }
 

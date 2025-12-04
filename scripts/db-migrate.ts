@@ -1,14 +1,11 @@
 import 'dotenv/config';
 
-import postgres from 'postgres';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { config } from '~/lib/config.server';
 
-const client = postgres(config.DRIZZLE_DATABASE_URL, { prepare: false });
-const db = drizzle(client);
-
-await migrate(db, { migrationsFolder: 'drizzle' });
-client.end();
+const db = drizzle(config.DRIZZLE_DATABASE_URL);
+await migrate(db, { migrationsFolder: 'drizzle', migrationsSchema: 'public' });
 
 console.log('Database migrated.');
+process.exit(0);
