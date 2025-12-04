@@ -1,7 +1,6 @@
 import type { Transaction } from '~/db/types';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useRevalidator } from 'react-router';
 import { httpDelete } from '~/lib/http';
 import {
   CalendarIcon,
@@ -29,6 +28,7 @@ import { getImageUrl } from '~/lib/image';
 import { Button } from '~/components/ui/button';
 import { useState } from 'react';
 import { EditTransactionDialog } from './edit-transaction-dialog';
+import { TRANSACTIONS_QUERY_KEY } from '~/queries/transaction';
 
 type TransactionDetailsProps = {
   transaction: Transaction;
@@ -36,8 +36,8 @@ type TransactionDetailsProps = {
 
 export function TransactionDetails(props: TransactionDetailsProps) {
   const { transaction } = props;
-  const revalidator = useRevalidator();
 
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -46,9 +46,13 @@ export function TransactionDetails(props: TransactionDetailsProps) {
       return httpDelete(`/api/v1/transactions/${transaction.id}`);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate(query) {
+          return query.queryKey?.[0] === TRANSACTIONS_QUERY_KEY;
+        },
+      });
       toast.success('Transaction deleted successfully');
       setIsOpen(false);
-      revalidator.revalidate();
     },
     onError: () => {
       toast.error('Failed to delete transaction');
@@ -59,7 +63,6 @@ export function TransactionDetails(props: TransactionDetailsProps) {
     merchant,
     description,
     amount,
-    currency,
     timestamp,
     category,
     image,

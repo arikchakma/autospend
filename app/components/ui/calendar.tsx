@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import {
   ChevronDownIcon,
@@ -203,7 +201,7 @@ function CalendarDayButton(props: CalendarDayButtonProps) {
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        'flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-zinc-900 group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-zinc-900/50 data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-end=true]:bg-zinc-900 data-[range-end=true]:text-zinc-50 data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-zinc-100 data-[range-middle=true]:text-zinc-900 data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md data-[range-start=true]:bg-zinc-900 data-[range-start=true]:text-zinc-50 data-[selected-single=true]:bg-zinc-900 data-[selected-single=true]:text-zinc-50 hover:text-zinc-900 [&>span]:text-xs [&>span]:opacity-70',
+        'flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-zinc-900 group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-zinc-900/50 hover:text-zinc-900 data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-end=true]:bg-zinc-900 data-[range-end=true]:text-zinc-50 data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-zinc-100 data-[range-middle=true]:text-zinc-900 data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md data-[range-start=true]:bg-zinc-900 data-[range-start=true]:text-zinc-50 data-[selected-single=true]:bg-zinc-900 data-[selected-single=true]:text-zinc-50 [&>span]:text-xs [&>span]:opacity-70',
         defaultClassNames.day,
         className
       )}

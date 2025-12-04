@@ -18,11 +18,13 @@ type ListTransactionsResponse = {
   totalAmount: number;
 };
 
+export const TRANSACTIONS_QUERY_KEY = 'transactions';
+
 export function listTransactionsOptions(options: ListTransactionsOptions) {
   const { from, to, page = 1, limit = 10 } = options;
 
   return queryOptions({
-    queryKey: ['transactions', { from, to }],
+    queryKey: [TRANSACTIONS_QUERY_KEY, { from, to }],
     queryFn: () => {
       return httpGet<ListTransactionsResponse>('/api/v1/transactions', {
         from,

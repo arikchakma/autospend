@@ -3,6 +3,17 @@ import type { Route } from './+types/login';
 import { GoogleLoginButton } from '~/components/google-login-button';
 import { getUser } from '~/lib/jwt';
 
+export const meta: Route.MetaFunction = () => {
+  return [
+    { title: 'Login to your account' },
+    {
+      name: 'description',
+      content:
+        'Login to your account to start managing your finances with ease.',
+    },
+  ];
+};
+
 export async function clientLoader(args: Route.ClientLoaderArgs) {
   const user = getUser();
   if (!user) {

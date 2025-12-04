@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '~/components/ui/button';
 import {
   Dialog,
@@ -22,7 +22,7 @@ import type { Transaction } from '~/db/types';
 import { allowedCategories } from '~/lib/transaction';
 import { httpPatch } from '~/lib/http';
 import { toast } from 'sonner';
-import { useRevalidator } from 'react-router';
+import { TRANSACTIONS_QUERY_KEY } from '~/queries/transaction';
 
 type EditTransactionDialogProps = {
   transaction: Transaction;
@@ -32,7 +32,7 @@ type EditTransactionDialogProps = {
 
 export function EditTransactionDialog(props: EditTransactionDialogProps) {
   const { transaction, open, onOpenChange } = props;
-  const revalidator = useRevalidator();
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = React.useState({
     amount: transaction.amount,
@@ -46,9 +46,13 @@ export function EditTransactionDialog(props: EditTransactionDialogProps) {
       return httpPatch(`/api/v1/transactions/${transaction.id}`, data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate(query) {
+          return query.queryKey?.[0] === TRANSACTIONS_QUERY_KEY;
+        },
+      });
       toast.success('Transaction updated successfully');
       onOpenChange(false);
-      revalidator.revalidate();
     },
     onError: () => {
       toast.error('Failed to update transaction');

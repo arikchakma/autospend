@@ -15,9 +15,11 @@ import { href, Link, redirect } from 'react-router';
 import { useHasFileUploadingError } from '~/lib/file-manager/use-has-file-uploading-error';
 import { useFileUploaderClient } from '~/lib/file-manager/file-upload-provider';
 import { toast } from 'sonner';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { httpPost } from '~/lib/http';
 import { getUser } from '~/lib/jwt';
+import { listImagesOptions } from '~/queries/image';
+import { TRANSACTIONS_QUERY_KEY } from '~/queries/transaction';
 
 type OnDrop<T extends File = File> = (
   acceptedFiles: T[],
@@ -132,6 +134,7 @@ type NextButtonProps = {
 function NextButton(props: NextButtonProps) {
   const { className } = props;
 
+  const queryClient = useQueryClient();
   const fileUploaderClient = useFileUploaderClient();
   const isUploading = useIsFileUploading();
   const hasError = useHasFileUploadingError();
@@ -145,6 +148,15 @@ function NextButton(props: NextButtonProps) {
     onSuccess: () => {
       setFiles([]);
       toast.success('Transactions are being processed...');
+      queryClient.invalidateQueries({
+        predicate(query) {
+          return (
+            query.queryKey ===
+              listImagesOptions({ status: ['pending', 'processing'] })
+                .queryKey || query.queryKey[0] === TRANSACTIONS_QUERY_KEY
+          );
+        },
+      });
     },
     onError: () => {
       toast.error('Failed to queue images for processing');
