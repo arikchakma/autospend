@@ -82,6 +82,6 @@ export async function getUserFromCookie(request: Request) {
   }
 
   return db.query.usersTable.findFirst({
-    where: eq(usersTable.email, claims.email),
+    where: eq(usersTable.id, Number(claims.id)),
   });
 }
