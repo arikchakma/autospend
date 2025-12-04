@@ -33,3 +33,9 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export function headers() {
+  return {
+    'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+  };
+}
