@@ -1,15 +1,15 @@
-import { redirect } from 'react-router';
+import { href, redirect } from 'react-router';
 import type { Route } from './+types/login';
 import { GoogleLoginButton } from '~/components/google-login-button';
-import { getUserFromCookie } from '~/lib/jwt.server';
+import { getUser } from '~/lib/jwt';
 
-export async function loader(args: Route.LoaderArgs) {
-  const user = await getUserFromCookie(args.request);
+export async function clientLoader(args: Route.ClientLoaderArgs) {
+  const user = getUser();
   if (!user) {
     return null;
   }
 
-  return redirect('/');
+  return redirect(href('/'));
 }
 
 export default function LoginPage() {

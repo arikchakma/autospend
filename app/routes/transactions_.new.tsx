@@ -194,3 +194,9 @@ function NextButton(props: NextButtonProps) {
     </button>
   );
 }
+
+export function headers() {
+  return {
+    'Cache-Control': 'public, max-age=300, stale-while-revalidate=86400',
+  };
+}

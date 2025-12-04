@@ -161,3 +161,9 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
     </>
   );
 }
+
+export function headers() {
+  return {
+    'Cache-Control': 'public, max-age=300, stale-while-revalidate=86400',
+  };
+}
