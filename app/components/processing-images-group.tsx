@@ -9,14 +9,32 @@ import { DateTime } from 'luxon';
 import type { Image } from '~/db/types';
 import { Button } from './ui/button';
 import { cn } from '~/lib/classname';
+import { useQuery } from '@tanstack/react-query';
+import { listImagesOptions } from '~/queries/image';
+import { Skeleton } from '~/components/ui/skeleton';
 
-type ProcessingImagesGroupProps = {
-  images: Image[];
-};
+export function ProcessingImagesGroup() {
+  const { data, isLoading } = useQuery(
+    listImagesOptions({ status: ['pending', 'processing'] })
+  );
+  const images = data?.images ?? [];
 
-export function ProcessingImagesGroup({ images }: ProcessingImagesGroupProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAll, setShowAll] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="mb-4 rounded-xl border border-zinc-200/50 bg-zinc-100 p-1.5">
+        <div className="flex h-[28px] items-center justify-between gap-2 pr-0.5 pl-2.5">
+          <Skeleton className="h-4 w-32 bg-zinc-200" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3 w-24 bg-zinc-200" />
+            <Skeleton className="size-5 rounded-md bg-zinc-200" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!images.length) {
     return null;

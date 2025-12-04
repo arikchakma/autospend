@@ -23,13 +23,14 @@ export function listTransactionsOptions(options: ListTransactionsOptions) {
 
   return queryOptions({
     queryKey: ['transactions', { from, to }],
-    queryFn: () =>
-      httpGet<ListTransactionsResponse>('/api/v1/transactions', {
+    queryFn: () => {
+      return httpGet<ListTransactionsResponse>('/api/v1/transactions', {
         from,
         to,
         page,
         limit,
-      }),
+      });
+    },
   });
 }
 
@@ -46,6 +47,8 @@ type MonthlyChartResponse = {
 export function monthlyChartOptions() {
   return queryOptions({
     queryKey: ['monthly-chart'],
-    queryFn: () => httpGet<MonthlyChartResponse>('/api/v1/transactions/stats'),
+    queryFn: () => {
+      return httpGet<MonthlyChartResponse>('/api/v1/transactions/stats');
+    },
   });
 }
