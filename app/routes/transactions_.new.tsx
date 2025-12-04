@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { httpPost } from '~/lib/http';
 import { getUser } from '~/lib/jwt';
-import { listImagesOptions } from '~/queries/image';
+import { IMAGES_QUERY_KEY, listImagesOptions } from '~/queries/image';
 import { TRANSACTIONS_QUERY_KEY } from '~/queries/transaction';
 
 type OnDrop<T extends File = File> = (
@@ -151,9 +151,8 @@ function NextButton(props: NextButtonProps) {
       queryClient.invalidateQueries({
         predicate(query) {
           return (
-            query.queryKey ===
-              listImagesOptions({ status: ['pending', 'processing'] })
-                .queryKey || query.queryKey[0] === TRANSACTIONS_QUERY_KEY
+            query.queryKey?.[0] === IMAGES_QUERY_KEY ||
+            query.queryKey?.[0] === TRANSACTIONS_QUERY_KEY
           );
         },
       });
