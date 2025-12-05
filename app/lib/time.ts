@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 
 export function getTimeOfDay(date: DateTime = DateTime.now()) {
-  const hour = Number(date.toFormat('h'));
+  const hour = Number(date.toFormat('HH'));
   return hour >= 6 && hour < 12
     ? 'morning'
     : hour >= 12 && hour < 18
