@@ -14,7 +14,7 @@ import { FileUploaderClientProvider } from './lib/file-manager/file-upload-provi
 import { Toaster } from 'sonner';
 import { NavLoadingBar } from './components/nav-loading-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '~/lib/query-client';
+import { queryClient } from '~/lib/query-client.client';
 import { Loader2Icon } from 'lucide-react';
 
 export const links: Route.LinksFunction = () => [

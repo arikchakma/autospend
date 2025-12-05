@@ -89,7 +89,13 @@ export function ProcessingImagesGroup() {
   );
 }
 
-function ProcessingImageRow({ image }: { image: Image }) {
+type ProcessingImageRowProps = {
+  image: Image;
+};
+
+function ProcessingImageRow(props: ProcessingImageRowProps) {
+  const { image } = props;
+
   return (
     <div className="grid w-full grid-cols-[1fr_auto] items-center gap-2 p-2.5 text-left hover:bg-zinc-50">
       <div className="flex flex-col gap-1">
@@ -118,7 +124,13 @@ function ProcessingImageRow({ image }: { image: Image }) {
   );
 }
 
-function StatusBadge({ status }: { status: string | null }) {
+type StatusBadgeProps = {
+  status: Image['status'];
+};
+
+function StatusBadge(props: StatusBadgeProps) {
+  const { status } = props;
+
   if (!status) return null;
 
   const isProcessing = status === 'processing';

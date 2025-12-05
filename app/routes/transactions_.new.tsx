@@ -15,7 +15,7 @@ import { href, Link, redirect } from 'react-router';
 import { useHasFileUploadingError } from '~/lib/file-manager/use-has-file-uploading-error';
 import { useFileUploaderClient } from '~/lib/file-manager/file-upload-provider';
 import { toast } from 'sonner';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { httpPost } from '~/lib/http';
 import { getUser } from '~/lib/jwt';
 import { IMAGES_QUERY_KEY, listImagesOptions } from '~/queries/image';
@@ -148,14 +148,7 @@ function NextButton(props: NextButtonProps) {
     onSuccess: () => {
       setFiles([]);
       toast.success('Transactions are being processed...');
-      queryClient.invalidateQueries({
-        predicate(query) {
-          return (
-            query.queryKey?.[0] === IMAGES_QUERY_KEY ||
-            query.queryKey?.[0] === TRANSACTIONS_QUERY_KEY
-          );
-        },
-      });
+      return queryClient.invalidateQueries();
     },
     onError: () => {
       toast.error('Failed to queue images for processing');
