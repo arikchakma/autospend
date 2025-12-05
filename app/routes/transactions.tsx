@@ -19,9 +19,7 @@ export default function TransactionsLayout(props: Route.ComponentProps) {
 
   const { user } = loaderData;
   const timeOfDay = getTimeOfDay();
-  const formattedDate = DateTime.now()
-    .setZone('Asia/Kolkata')
-    .toFormat("dd 'of' MMMM");
+  const formattedDate = DateTime.now().toFormat("dd 'of' MMMM");
 
   const firstName = user.name.split(' ')[0];
 
