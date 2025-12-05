@@ -106,6 +106,7 @@ export async function action(args: Route.ActionArgs) {
         type: image.type,
         path: image.path,
         userId: user.id,
+        status: 'pending' as Image['status'],
       }))
     )
     .returning();
