@@ -11,15 +11,16 @@ export async function clientLoader(args: Route.ClientLoaderArgs) {
     return redirect(href('/login'));
   }
 
-  return { user };
+  const timeOfDay = getTimeOfDay();
+  const formattedDate = DateTime.now().toFormat("dd 'of' MMMM");
+
+  return { user, timeOfDay, formattedDate };
 }
 
 export default function TransactionsLayout(props: Route.ComponentProps) {
   const { loaderData } = props;
 
-  const { user } = loaderData;
-  const timeOfDay = getTimeOfDay();
-  const formattedDate = DateTime.now().toFormat("dd 'of' MMMM");
+  const { user, timeOfDay, formattedDate } = loaderData;
 
   const firstName = user.name.split(' ')[0];
 
