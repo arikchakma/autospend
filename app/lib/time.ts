@@ -9,7 +9,7 @@ export function getTimeOfDay(
     ? 'morning'
     : hour >= 12 && hour < 18
       ? 'afternoon'
-      : hour >= 18 && hour < 21
+      : hour >= 18 && hour < 22
         ? 'evening'
         : 'night';
 }

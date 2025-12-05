@@ -47,9 +47,7 @@ export default function YearlySummary() {
   };
 
   const totalAmount = data.items.reduce((acc, item) => acc + item.total, 0);
-  const formattedToday = DateTime.now()
-    .setZone('Asia/Kolkata')
-    .toFormat('dd.MM.yyyy');
+  const formattedToday = DateTime.now().toFormat('dd.MM.yyyy');
 
   const formatAmount = (amount: number) => {
     const intl = new Intl.NumberFormat('en-US', {
