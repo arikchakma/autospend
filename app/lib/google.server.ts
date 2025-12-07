@@ -125,12 +125,11 @@ export async function processImages(images: Image[], user: User) {
             and(eq(imagesTable.id, image.id), eq(imagesTable.userId, userId))
           );
 
-        const now = DateTime.now().toFormat('yyyy-MM-dd HH:mm:ss');
-        const timestamp = DateTime.fromFormat(
-          result.datetime || now,
-          'yyyy-MM-dd HH:mm:ss',
-          { zone: user.timezone }
-        ).toJSDate();
+        const timestamp = result?.datetime
+          ? DateTime.fromFormat(result.datetime, 'yyyy-MM-dd HH:mm:ss', {
+              zone: user.timezone,
+            }).toJSDate()
+          : DateTime.now().toJSDate();
 
         await db.insert(transactionsTable).values({
           timestamp,
