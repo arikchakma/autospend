@@ -70,9 +70,9 @@ export function TransactionDetails(props: TransactionDetailsProps) {
   } = transaction;
 
   const formattedAmount = formatCurrency(amount);
-  const formattedDate = DateTime.fromJSDate(new Date(timestamp)).toFormat(
-    'dd MMM yyyy'
-  );
+  const formattedDate = DateTime.fromJSDate(new Date(timestamp))
+    .setZone('UTC')
+    .toFormat('dd MMM yyyy');
   const imageUrl = image ? getImageUrl(image) : null;
 
   return (
