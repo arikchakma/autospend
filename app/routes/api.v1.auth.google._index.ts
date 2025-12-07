@@ -1,6 +1,11 @@
 import { googleAuth } from '~/lib/google-auth.server';
 import type { Route } from './+types/api.v1.auth.google._index';
 import { json } from '~/lib/response.server';
+import z from 'zod/v4';
+
+export type AuthState = {
+  timezone: string;
+};
 
 export async function action(args: Route.ActionArgs) {
   if (args.request.method !== 'POST') {
@@ -15,8 +20,25 @@ export async function action(args: Route.ActionArgs) {
   }
 
   try {
+    const jsonBody = await args.request.json();
+    const bodySchema = z.object({
+      timezone: z.string(),
+    });
+    const { data: body, error } = bodySchema.safeParse(jsonBody);
+    if (error) {
+      const errors = error.issues.map((issue) => issue.message);
+      return json(
+        {
+          status: 400,
+          message: errors.join(', '),
+          errors,
+        },
+        { status: 400 }
+      );
+    }
+
     const { url: authorizationUrl, cookies } =
-      await googleAuth.getAuthorizationUrl(args.request);
+      await googleAuth.getAuthorizationUrl(args.request, body);
 
     const headers = new Headers();
     for (const c of cookies) {

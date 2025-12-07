@@ -1,10 +1,10 @@
 import z from 'zod/v4';
 import { db } from '~/db';
-import { imagesTable } from '~/db/schema';
+import { imagesTable, usersTable } from '~/db/schema';
 import { processImages } from '~/lib/google.server';
 import type { Route } from './+types/api.v1.images.process';
 import { json } from '~/lib/response.server';
-import { inArray } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { isValidQueueRequest } from '~/lib/qstash.server';
 
 export async function action(args: Route.ActionArgs) {
@@ -29,10 +29,17 @@ export async function action(args: Route.ActionArgs) {
     return json({ errors, message }, { status: 400 });
   }
 
+  const user = await db.query.usersTable.findFirst({
+    where: eq(usersTable.id, body.userId),
+  });
+  if (!user) {
+    return json({ error: 'User not found' }, { status: 404 });
+  }
+
   const images = await db.query.imagesTable.findMany({
     where: inArray(imagesTable.id, body.images),
   });
 
-  await processImages(images, body.userId);
+  await processImages(images, user);
   return json({ status: 'ok' });
 }

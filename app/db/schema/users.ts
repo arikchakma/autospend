@@ -12,6 +12,7 @@ export const usersTable = pgTable(
     name: text('name').notNull(),
     email: text('email').notNull(),
     verifiedAt: timestamp('verified_at'),
+    timezone: text('timezone').notNull().default('UTC'),
     ...defaultTimestamps,
   },
   (table) => ({

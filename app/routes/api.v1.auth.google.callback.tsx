@@ -7,20 +7,27 @@ import { usersTable } from '~/db/schema';
 import { eq } from 'drizzle-orm';
 import { sign } from '~/lib/jwt.server';
 import { setAuthToken } from '~/lib/jwt';
-import { href, redirect, useNavigate } from 'react-router';
+import { href, useNavigate } from 'react-router';
 import { Loader2Icon } from 'lucide-react';
 import { useEffect } from 'react';
+import type { AuthState } from './api.v1.auth.google._index';
+import { ProofManager } from '~/lib/proof-manager.server';
 
 export async function loader(args: Route.LoaderArgs) {
   try {
     let googleUser:
       | Awaited<ReturnType<typeof googleAuth.getUserInfo>>['user']
       | null = null;
+    let data: AuthState | null = null;
 
     try {
-      const { user: _googleUser, tokens: _tokens } =
-        await googleAuth.getUserInfo(args.request);
+      const {
+        user: _googleUser,
+        tokens: _tokens,
+        data: _data,
+      } = await googleAuth.getUserInfo(args.request);
       googleUser = _googleUser;
+      data = _data;
     } catch (error) {
       console.error('Failed to get google user info:', error);
       throw new HttpError(
@@ -50,9 +57,19 @@ export async function loader(args: Route.LoaderArgs) {
         .values({
           name: googleUser.name ?? googleUser?.given_name ?? '',
           email: googleUser.email,
+          timezone: data?.timezone,
         })
         .returning();
       user = newUser[0];
+    }
+
+    if (!user?.timezone) {
+      await db
+        .update(usersTable)
+        .set({
+          timezone: data?.timezone,
+        })
+        .where(eq(usersTable.id, user.id));
     }
 
     if (!user) {
@@ -70,7 +87,13 @@ export async function loader(args: Route.LoaderArgs) {
       email: user.email,
     });
 
-    return json({ token });
+    const headers = new Headers();
+    const cookies = await ProofManager.removeAllCookies();
+    for (const c of cookies) {
+      headers.append('Set-Cookie', c);
+    }
+
+    return json({ token }, { headers });
   } catch (error) {
     if (HttpError.isHttpError(error)) {
       return json(

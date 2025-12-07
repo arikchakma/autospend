@@ -1,5 +1,5 @@
 import * as oauth from 'oauth4webapi';
-import { ProofManager } from './proof-manager.server';
+import { ProofManager, STATE_SEPARATOR } from './proof-manager.server';
 import { config } from './config.server';
 
 class GoogleOAuth extends ProofManager {
@@ -31,7 +31,7 @@ class GoogleOAuth extends ProofManager {
     };
   }
 
-  async getAuthorizationUrl(request: Request) {
+  async getAuthorizationUrl(request: Request, data?: Record<string, string>) {
     const { as, client } = await this.config();
 
     const cookies = [];
@@ -49,6 +49,10 @@ class GoogleOAuth extends ProofManager {
       pkce.codeChallengeMethod
     );
 
+    const { state, cookie } = await this.state(data);
+    authorizationUrl.searchParams.set('state', state);
+    cookies.push(cookie);
+
     /**
      * We cannot be sure the AS supports PKCE so we're going to use nonce too. Use of PKCE is
      * backwards compatible even if the AS doesn't support it which is why we're using it regardless.
@@ -65,7 +69,9 @@ class GoogleOAuth extends ProofManager {
   async getUserInfo(request: Request) {
     const { as, client, clientAuth } = await this.config();
     const currentUrl = new URL(request.url);
-    const params = oauth.validateAuthResponse(as, client, currentUrl);
+
+    const state = await this.readState(request);
+    const params = oauth.validateAuthResponse(as, client, currentUrl, state);
 
     const codeVerifier = await this.readPkce(request);
     const response = await oauth.authorizationCodeGrantRequest(
@@ -100,10 +106,27 @@ class GoogleOAuth extends ProofManager {
       userResponse
     );
 
+    const queryState = params.get('state');
+    const data = await this.getStateData(queryState);
+
     return {
       tokens: result,
       user: userResult,
+      data,
     };
+  }
+
+  async getStateData(state: string | null) {
+    if (!state) {
+      throw new Error('Invalid state');
+    }
+
+    try {
+      const [_, data] = state.split(STATE_SEPARATOR);
+      return JSON.parse(decodeURIComponent(data));
+    } catch (error) {
+      throw new Error('Invalid state');
+    }
   }
 }
 

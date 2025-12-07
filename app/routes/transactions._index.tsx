@@ -83,9 +83,9 @@ export default function TransactionsIndexPage(props: Route.ComponentProps) {
   const groupedTransactions = useMemo(() => {
     return transactions.reduce(
       (acc, transaction) => {
-        const date = DateTime.fromJSDate(
-          new Date(transaction.timestamp)
-        ).toFormat('yyyy-MM');
+        const date = DateTime.fromJSDate(new Date(transaction.timestamp))
+          .setZone('utc')
+          .toFormat('yyyy-MM');
         if (!acc[date]) {
           acc[date] = [];
         }

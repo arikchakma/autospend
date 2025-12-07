@@ -8,7 +8,10 @@ type GoogleLoginResponse = {
 export function googleLoginMutation() {
   return mutationOptions({
     mutationFn: async () => {
-      return httpPost<GoogleLoginResponse>('/api/v1/auth/google', {});
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      return httpPost<GoogleLoginResponse>('/api/v1/auth/google', {
+        timezone,
+      });
     },
     onSuccess: (data) => {
       window.location.href = data.authorizationUrl;

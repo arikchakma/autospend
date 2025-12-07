@@ -6,6 +6,8 @@ export const PKCE_COOKIE_NAME = '__autospend_pkce__';
 export const STATE_COOKIE_NAME = '__autospend_state__';
 export const NONCE_COOKIE_NAME = '__autospend_nonce__';
 
+export const STATE_SEPARATOR = '::';
+
 const TEN_MINUTES = 10;
 
 const pkceCookie = createCookie(PKCE_COOKIE_NAME, {
@@ -51,8 +53,10 @@ export class ProofManager {
     return pkceCookie.parse(request.headers.get('Cookie'));
   }
 
-  async state() {
-    const state = oauth.generateRandomState();
+  async state(data: Record<string, string> = {}) {
+    const random = oauth.generateRandomState();
+    const encodedState = encodeURIComponent(JSON.stringify(data));
+    const state = `${random}${STATE_SEPARATOR}${encodedState}`;
 
     return {
       state,
@@ -78,5 +82,13 @@ export class ProofManager {
 
   async readNonce(request: Request) {
     return nonceCookie.parse(request.headers.get('Cookie'));
+  }
+
+  static async removeAllCookies() {
+    const cookies = [];
+    cookies.push(await pkceCookie.serialize(null, { expires: new Date(0) }));
+    cookies.push(await stateCookie.serialize(null, { expires: new Date(0) }));
+    cookies.push(await nonceCookie.serialize(null, { expires: new Date(0) }));
+    return cookies;
   }
 }

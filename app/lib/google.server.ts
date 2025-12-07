@@ -1,10 +1,11 @@
 import { generateObject } from 'ai';
-import { type Image } from '~/db/types';
+import { type Image, type User } from '~/db/types';
 import { imagesTable, transactionsTable } from '~/db/schema';
 import { z } from 'zod';
 import { db } from '~/db';
 import { and, eq } from 'drizzle-orm';
 import PQueue from 'p-queue';
+import { DateTime } from 'luxon';
 
 const SYSTEM_PROMPT_TEMPLATE = `You are an expert extraction algorithm.
 Only extract relevant information from the text.
@@ -95,7 +96,8 @@ export async function extractTransactionData(image: Image) {
   }
 }
 
-export async function processImages(images: Image[], userId: number) {
+export async function processImages(images: Image[], user: User) {
+  const { id: userId } = user;
   const queue = new PQueue({ concurrency: 5 });
   for (const image of images) {
     queue.add(async () => {
@@ -122,8 +124,14 @@ export async function processImages(images: Image[], userId: number) {
           .where(
             and(eq(imagesTable.id, image.id), eq(imagesTable.userId, userId))
           );
+
+        const timestamp = DateTime.fromJSDate(
+          new Date(result.datetime || new Date())
+        )
+          .setZone(user.timezone)
+          .toJSDate();
         await db.insert(transactionsTable).values({
-          timestamp: new Date(result.datetime || new Date()),
+          timestamp,
           amount: result.amount,
           currency: result.currency,
           merchant: result.merchant,
