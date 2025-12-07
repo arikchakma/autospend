@@ -125,9 +125,10 @@ export async function processImages(images: Image[], user: User) {
             and(eq(imagesTable.id, image.id), eq(imagesTable.userId, userId))
           );
 
-        const timestamp = DateTime.fromJSDate(
+        const utc = DateTime.fromJSDate(
           new Date(result.datetime || new Date())
-        )
+        ).setZone('UTC');
+        const timestamp = DateTime.fromJSDate(utc.toJSDate())
           .setZone(user.timezone)
           .toJSDate();
 
