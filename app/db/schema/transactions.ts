@@ -20,7 +20,7 @@ export const transactionsTable = pgTable(
     amount: real('amount').notNull(),
     description: text('description'),
     currency: text('currency').notNull(),
-    timestamp: timestamp('timestamp').notNull(),
+    timestamp: timestamp('timestamp', { withTimezone: true }).notNull(),
     image: text('image'),
     category: text('category').default('other').notNull(),
     merchant: text('merchant'),

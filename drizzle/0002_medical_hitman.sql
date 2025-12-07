@@ -1,0 +1,1 @@
+ALTER TABLE "transactions" ALTER COLUMN "timestamp" SET DATA TYPE timestamp with time zone;

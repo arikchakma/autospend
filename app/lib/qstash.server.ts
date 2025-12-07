@@ -1,5 +1,6 @@
 import { Client, Receiver } from '@upstash/qstash';
 import { config } from './config.server';
+import { IMAGE_PROCESS_QUEUE_URL } from './constants';
 
 export const qstash = new Client({
   token: config.QSTASH_TOKEN,
@@ -22,6 +23,7 @@ export async function isValidQueueRequest(request: Request, payload: any) {
     const result = await r.verify({
       signature,
       body: payload,
+      url: IMAGE_PROCESS_QUEUE_URL,
     });
     return result;
   } catch (error) {

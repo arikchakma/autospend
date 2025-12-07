@@ -15,6 +15,13 @@
       "when": 1765102987542,
       "tag": "0001_red_black_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765105076270,
+      "tag": "0002_medical_hitman",
+      "breakpoints": true
     }
   ]
 }
