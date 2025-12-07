@@ -129,20 +129,8 @@ export async function processImages(images: Image[], user: User) {
         const timestamp = DateTime.fromFormat(
           result.datetime || now,
           'yyyy-MM-dd HH:mm:ss',
-          { zone: 'UTC' }
-        )
-          .setZone(user.timezone)
-          .toJSDate();
-
-        console.log('-'.repeat(20));
-        console.log('Result Datetime: ', result.datetime);
-        console.log('Timestamp: ', timestamp);
-        console.log('User Timezone: ', user.timezone);
-        console.log(
-          'Server Timezone: ',
-          Intl.DateTimeFormat().resolvedOptions().timeZone
-        );
-        console.log('-'.repeat(20));
+          { zone: user.timezone }
+        ).toJSDate();
 
         await db.insert(transactionsTable).values({
           timestamp,
