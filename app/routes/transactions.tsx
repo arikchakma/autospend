@@ -12,15 +12,17 @@ export async function clientLoader(args: Route.ClientLoaderArgs) {
   }
 
   const timeOfDay = getTimeOfDay();
-  const formattedDate = DateTime.now().toFormat("dd 'of' MMMM");
+  const now = DateTime.now();
+  const formattedDate = now.toFormat("dd 'of' MMMM");
+  const dayOfWeek = now.toFormat('EEEE');
 
-  return { user, timeOfDay, formattedDate };
+  return { user, timeOfDay, formattedDate, dayOfWeek };
 }
 
 export default function TransactionsLayout(props: Route.ComponentProps) {
   const { loaderData } = props;
 
-  const { user, timeOfDay, formattedDate } = loaderData;
+  const { user, timeOfDay, formattedDate, dayOfWeek } = loaderData;
 
   const firstName = user.name.split(' ')[0];
 
@@ -56,8 +58,7 @@ export default function TransactionsLayout(props: Route.ComponentProps) {
             </div>
           </div>
           <p className="text-zinc-500 uppercase">
-            It's {formattedDate}, a{' '}
-            {DateTime.now().setZone('Asia/Kolkata').toFormat('EEEE')}
+            It's {formattedDate}, a {dayOfWeek}
           </p>
         </div>
       </div>
