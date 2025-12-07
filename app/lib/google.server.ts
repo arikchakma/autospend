@@ -130,6 +130,13 @@ export async function processImages(images: Image[], user: User) {
         )
           .setZone(user.timezone)
           .toJSDate();
+
+        console.log('-'.repeat(20));
+        console.log('Result Datetime: ', result.datetime);
+        console.log('Timestamp: ', timestamp);
+        console.log('User Timezone: ', user.timezone);
+        console.log('-'.repeat(20));
+
         await db.insert(transactionsTable).values({
           timestamp,
           amount: result.amount,
