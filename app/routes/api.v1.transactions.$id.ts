@@ -1,13 +1,14 @@
 import z from 'zod/v4';
 import { and, eq } from 'drizzle-orm';
 import { db } from '~/db';
-import { transactionsTable } from '~/db/schema';
+import { imagesTable, transactionsTable } from '~/db/schema';
 import { allowedCategories } from '~/lib/transaction';
 import type { Route } from './+types/api.v1.transactions.$id';
 import { json } from '~/lib/response.server';
 import { getUserFromCookie } from '~/lib/jwt.server';
 import { redirect } from 'react-router';
 import type { User } from '~/db/types';
+import { deleteFile } from '~/lib/s3.server';
 
 export async function action(args: Route.ActionArgs) {
   const { request, params } = args;
@@ -63,6 +64,36 @@ export async function action(args: Route.ActionArgs) {
 
 async function deleteTransaction(request: Request, user: User, id: number) {
   try {
+    const transaction = await db.query.transactionsTable.findFirst({
+      where: and(
+        eq(transactionsTable.id, id),
+        eq(transactionsTable.userId, user.id)
+      ),
+    });
+    if (!transaction) {
+      return json({ error: 'Transaction not found' }, { status: 404 });
+    }
+
+    if (transaction.image) {
+      const image = await db.query.imagesTable.findFirst({
+        where: eq(imagesTable.path, transaction.image),
+      });
+
+      if (!image) {
+        return json(
+          {
+            status: 404,
+            message: 'Image not found',
+            errors: [{ message: 'Image not found' }],
+          },
+          { status: 404 }
+        );
+      }
+
+      await deleteFile(image.path);
+      await db.delete(imagesTable).where(eq(imagesTable.id, image.id));
+    }
+
     await db
       .delete(transactionsTable)
       .where(

@@ -11,3 +11,10 @@ export const s3Client = new S3({
 });
 
 export const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+
+export function deleteFile(key: string) {
+  return s3Client.deleteObject({
+    Bucket: config.S3_BUCKET_NAME,
+    Key: key,
+  });
+}
