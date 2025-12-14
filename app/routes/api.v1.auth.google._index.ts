@@ -1,7 +1,7 @@
-import { googleAuth } from '~/lib/google-auth.server';
 import type { Route } from './+types/api.v1.auth.google._index';
 import { json } from '~/lib/response.server';
 import z from 'zod/v4';
+import { auth, expiresAt, pkceCookie, stateCookie } from '~/lib/auth.server';
 
 export type AuthState = {
   timezone: string;
@@ -37,15 +37,23 @@ export async function action(args: Route.ActionArgs) {
       );
     }
 
-    const { url: authorizationUrl, cookies } =
-      await googleAuth.getAuthorizationUrl(args.request, body);
+    const { url, state, codeVerifier } = await auth.authorize('google', body);
 
     const headers = new Headers();
-    for (const c of cookies) {
-      headers.append('Set-Cookie', c);
-    }
+    headers.append(
+      'Set-Cookie',
+      await stateCookie.serialize(state, {
+        expires: expiresAt(10),
+      })
+    );
+    headers.append(
+      'Set-Cookie',
+      await pkceCookie.serialize(codeVerifier, {
+        expires: expiresAt(10),
+      })
+    );
 
-    return json({ authorizationUrl }, { headers });
+    return json({ authorizationUrl: url }, { headers });
   } catch (error) {
     console.error('Failed to get authorization URL:', error);
     return json(

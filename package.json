@@ -30,6 +30,7 @@
     "@upstash/qstash": "^2.8.4",
     "@vercel/react-router": "^1.2.4",
     "ai": "^5.0.106",
+    "authingy": "^0.0.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cookie": "^1.1.1",

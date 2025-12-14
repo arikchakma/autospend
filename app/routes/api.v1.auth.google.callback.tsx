@@ -1,4 +1,3 @@
-import { googleAuth } from '~/lib/google-auth.server';
 import type { Route } from './+types/api.v1.auth.google.callback';
 import { json } from '~/lib/response.server';
 import { HttpError } from '~/lib/http-error';
@@ -11,23 +10,27 @@ import { href, useNavigate } from 'react-router';
 import { Loader2Icon } from 'lucide-react';
 import { useEffect } from 'react';
 import type { AuthState } from './api.v1.auth.google._index';
-import { ProofManager } from '~/lib/proof-manager.server';
+import { auth, pkceCookie, stateCookie } from '~/lib/auth.server';
 
 export async function loader(args: Route.LoaderArgs) {
   try {
-    let googleUser:
-      | Awaited<ReturnType<typeof googleAuth.getUserInfo>>['user']
-      | null = null;
+    let googleUser: Awaited<ReturnType<typeof auth.callback>>['user'] | null =
+      null;
     let data: AuthState | null = null;
 
     try {
-      const {
-        user: _googleUser,
-        tokens: _tokens,
-        data: _data,
-      } = await googleAuth.getUserInfo(args.request);
-      googleUser = _googleUser;
-      data = _data;
+      const cookies = args.request.headers.get('Cookie');
+      const state = await stateCookie.parse(cookies);
+      const codeVerifier = await pkceCookie.parse(cookies);
+
+      const { user, data: _data } = await auth.callback('google', {
+        url: new URL(args.request.url),
+        state,
+        codeVerifier,
+      });
+
+      googleUser = user;
+      data = _data as AuthState;
     } catch (error) {
       console.error('Failed to get google user info:', error);
       throw new HttpError(
@@ -88,10 +91,14 @@ export async function loader(args: Route.LoaderArgs) {
     });
 
     const headers = new Headers();
-    const cookies = await ProofManager.removeAllCookies();
-    for (const c of cookies) {
-      headers.append('Set-Cookie', c);
-    }
+    headers.append(
+      'Set-Cookie',
+      await stateCookie.serialize(null, { expires: new Date(0) })
+    );
+    headers.append(
+      'Set-Cookie',
+      await pkceCookie.serialize(null, { expires: new Date(0) })
+    );
 
     return json({ token }, { headers });
   } catch (error) {
