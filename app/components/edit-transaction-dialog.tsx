@@ -11,6 +11,7 @@ import {
 } from '~/components/ui/dialog';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
+import { Textarea } from '~/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -114,17 +115,18 @@ export function EditTransactionDialog(props: EditTransactionDialogProps) {
               className="col-span-3"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="description" className="pt-2 text-right">
               Description
             </Label>
-            <Input
+            <Textarea
               id="description"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="col-span-3"
+              className="col-span-3 resize-none"
+              rows={3}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

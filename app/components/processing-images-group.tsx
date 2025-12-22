@@ -4,20 +4,43 @@ import {
   ChevronUpIcon,
   Loader2,
   ReceiptIcon,
+  RefreshCwIcon,
+  Trash2Icon,
 } from 'lucide-react';
 import { DateTime } from 'luxon';
 import type { Image } from '~/db/types';
 import { Button } from './ui/button';
 import { cn } from '~/lib/classname';
-import { useQuery } from '@tanstack/react-query';
-import { listImagesOptions } from '~/queries/image';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  deleteImageMutationOptions,
+  IMAGES_QUERY_KEY,
+  listImagesOptions,
+  retryImageMutationOptions,
+} from '~/queries/image';
 import { Skeleton } from '~/components/ui/skeleton';
+import { toast } from 'sonner';
 
 export function ProcessingImagesGroup() {
+  const queryClient = useQueryClient();
   const { data, isLoading } = useQuery(
-    listImagesOptions({ status: ['pending', 'processing'] })
+    listImagesOptions({ status: ['pending', 'processing', 'failed'] })
   );
   const images = data?.images ?? [];
+
+  const deleteImage = useMutation({
+    ...deleteImageMutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [IMAGES_QUERY_KEY] });
+    },
+  });
+
+  const retryImage = useMutation({
+    ...retryImageMutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [IMAGES_QUERY_KEY] });
+    },
+  });
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -70,7 +93,24 @@ export function ProcessingImagesGroup() {
       {isExpanded && (
         <div className="mt-1 flex flex-col divide-y divide-zinc-100 overflow-hidden rounded-lg bg-white shadow-sm">
           {displayedImages.map((image) => (
-            <ProcessingImageRow key={image.id} image={image} />
+            <ProcessingImageRow
+              key={image.id}
+              image={image}
+              onDelete={() => {
+                deleteImage.mutate(image.id, {
+                  onSuccess: () => toast.success('Image deleted'),
+                  onError: () => toast.error('Failed to delete image'),
+                });
+              }}
+              onRetry={() => {
+                retryImage.mutate(image.id, {
+                  onSuccess: () => toast.success('Retrying image processing'),
+                  onError: () => toast.error('Failed to retry'),
+                });
+              }}
+              isDeleting={deleteImage.isPending}
+              isRetrying={retryImage.isPending}
+            />
           ))}
         </div>
       )}
@@ -91,10 +131,16 @@ export function ProcessingImagesGroup() {
 
 type ProcessingImageRowProps = {
   image: Image;
+  onDelete: () => void;
+  onRetry: () => void;
+  isDeleting: boolean;
+  isRetrying: boolean;
 };
 
 function ProcessingImageRow(props: ProcessingImageRowProps) {
-  const { image } = props;
+  const { image, onDelete, onRetry, isDeleting, isRetrying } = props;
+  const isFailed = image.status === 'failed';
+  const isProcessing = image.status === 'processing';
 
   return (
     <div className="grid w-full grid-cols-[1fr_auto] items-center gap-2 p-2.5 text-left hover:bg-zinc-50">
@@ -109,15 +155,39 @@ function ProcessingImageRow(props: ProcessingImageRowProps) {
           <StatusBadge status={image.status} />
         </div>
         <p className="truncate text-xs text-zinc-500">
-          Uploaded {DateTime.fromJSDate(image.createdAt).toRelative()}
+          {isFailed && image.error ? (
+            <span className="text-red-500">{image.error}</span>
+          ) : (
+            <>Uploaded {DateTime.fromJSDate(image.createdAt).toRelative()}</>
+          )}
         </p>
       </div>
 
       <div className="flex items-center justify-end gap-2">
-        {image.status === 'processing' ? (
+        {isFailed && (
+          <button
+            type="button"
+            onClick={onRetry}
+            disabled={isRetrying}
+            className="flex size-6 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-indigo-600 disabled:opacity-50"
+            title="Retry"
+          >
+            <RefreshCwIcon className={cn('size-4', isRetrying && 'animate-spin')} />
+          </button>
+        )}
+        {!isProcessing && (
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={isDeleting}
+            className="flex size-6 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-red-600 disabled:opacity-50"
+            title="Delete"
+          >
+            <Trash2Icon className="size-4" />
+          </button>
+        )}
+        {isProcessing && (
           <Loader2 className="size-4 animate-spin text-indigo-500" />
-        ) : (
-          <ReceiptIcon className="size-4 text-zinc-400" />
         )}
       </div>
     </div>
@@ -133,14 +203,18 @@ function StatusBadge(props: StatusBadgeProps) {
 
   if (!status) return null;
 
-  const isProcessing = status === 'processing';
+  const statusStyles = {
+    processing: 'bg-indigo-50 text-indigo-700',
+    pending: 'bg-amber-50 text-amber-700',
+    failed: 'bg-red-50 text-red-700',
+    completed: 'bg-green-50 text-green-700',
+  };
+
   return (
     <span
       className={cn(
         'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase',
-        isProcessing
-          ? 'bg-indigo-50 text-indigo-700'
-          : 'bg-amber-50 text-amber-700'
+        statusStyles[status]
       )}
     >
       {status}

@@ -29,7 +29,7 @@ export default function TransactionsLayout(props: Route.ComponentProps) {
   const navigate = useNavigate();
 
   return (
-    <section className="mx-auto max-w-lg px-5">
+    <section className="mx-auto max-w-lg p-5">
       <div className="my-8 flex justify-between gap-2">
         <div className="flex w-full flex-col gap-0.5">
           <div className="flex items-center justify-between gap-2">
