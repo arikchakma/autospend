@@ -1,10 +1,17 @@
 import type { Route } from './+types/api.v1.auth.google._index';
 import { json } from '~/lib/response.server';
 import z from 'zod/v4';
-import { auth, expiresAt, pkceCookie, stateCookie } from '~/lib/auth.server';
+import {
+  auth,
+  expiresAt,
+  generateRandomState,
+  pkceCookie,
+  stateCookie,
+} from '~/lib/auth.server';
 
 export type AuthState = {
   timezone: string;
+  platform?: 'ios' | 'web';
 };
 
 export async function action(args: Route.ActionArgs) {
@@ -23,6 +30,7 @@ export async function action(args: Route.ActionArgs) {
     const jsonBody = await args.request.json();
     const bodySchema = z.object({
       timezone: z.string(),
+      platform: z.enum(['ios', 'web']).optional().default('web'),
     });
     const { data: body, error } = bodySchema.safeParse(jsonBody);
     if (error) {
@@ -37,7 +45,10 @@ export async function action(args: Route.ActionArgs) {
       );
     }
 
-    const { url, state, codeVerifier } = await auth.authorize('google', body);
+    const customState = generateRandomState(body.platform);
+    const { url, state, codeVerifier } = await auth.authorize('google', body, {
+      state: customState,
+    });
 
     const headers = new Headers();
     headers.append(

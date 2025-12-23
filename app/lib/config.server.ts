@@ -20,6 +20,8 @@ const envVariables = z.object({
   QSTASH_TOKEN: z.string(),
   QSTASH_CURRENT_SIGNING_KEY: z.string(),
   QSTASH_NEXT_SIGNING_KEY: z.string(),
+
+  MOBILE_APP_SCHEME: z.string().optional().default('autospend://'),
 });
 
 export const config = envVariables.parse(process.env);

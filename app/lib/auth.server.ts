@@ -1,4 +1,4 @@
-import { defineAuthingyConfig, google } from 'authingy';
+import { defineAuthingyConfig, google, oauth } from 'authingy';
 import { config } from './config.server';
 import { createCookie } from 'react-router';
 
@@ -21,8 +21,7 @@ export const stateCookie = createCookie(STATE_COOKIE_NAME, {
   sameSite: 'lax',
 });
 
-const redirectUri =
-  import.meta.env.VITE_APP_BASE_URL + '/api/v1/auth/google/callback';
+const redirectUri = import.meta.env.VITE_APP_BASE_URL + '/api/v1/auth/redirect';
 
 export const auth = defineAuthingyConfig({
   secret: config.JWT_SECRET,
@@ -34,3 +33,17 @@ export const auth = defineAuthingyConfig({
     }),
   ],
 });
+
+export function generateRandomState(platform: 'ios' | 'web') {
+  const state = oauth.generateRandomState();
+  return `${platform}:${state}`;
+}
+
+export function getPlatform(state: string) {
+  const [platform = 'web', _state] = state.split(':');
+  if (platform !== 'ios' && platform !== 'web') {
+    throw new Error('Invalid platform');
+  }
+
+  return platform;
+}

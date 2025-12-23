@@ -17,7 +17,7 @@ export function GoogleLoginButton() {
       variant="outline"
       disabled={isPending}
       onClick={() => {
-        toast.promise(googleLogin(), {
+        toast.promise(googleLogin({ platform: 'web' }), {
           loading: 'Logging in with Google...',
           success: 'Redirecting to Google...',
           error: (err) => err?.message ?? 'Failed to log in with Google',
